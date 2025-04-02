@@ -3,11 +3,11 @@ import axiosInstance from "../Config/axiosInstance";
 import toast from "react-hot-toast";
 
 // Async thunk to add a new user
-export const addPost = createAsyncThunk(
-  "seo/addPost",
+export const addcollabration = createAsyncThunk(
+  "collabration/addcollabration",
   async ({ projectData, router,  itemId2 }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/post/create/update`, projectData);
+      const response = await axiosInstance.post(`/collaboration/create/update`, projectData);
       if (response?.data?.success === true) {
         toast.success(response?.data?.message);
         router.push(`/project/details?id=${itemId2}`); // Navigate on success
@@ -23,11 +23,11 @@ export const addPost = createAsyncThunk(
 );
 
 // Async thunk to fetch users list
-export const fetchPost = createAsyncThunk(
-  "seo/fetchList",
+export const fetchcollabration = createAsyncThunk(
+  "collabrations/fetchList",
   async (filters = {}, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/post/list`, filters);
+      const response = await axiosInstance.post(`/collaboration/list`, filters);
       return response.data;
     } catch (error) {
       console.error("API Error:", error);
@@ -37,11 +37,11 @@ export const fetchPost = createAsyncThunk(
 );
 
 // Async thunk to fetch user details by ID
-export const fetchPostDetails = createAsyncThunk(
-  "seo/fetchDetails",
+export const fetchcollabrationDetails = createAsyncThunk(
+  "collabrations/fetchDetails",
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/post/details`, { id: userId });
+      const response = await axiosInstance.post(`/collaboration/details`, { id: userId });
       return response.data;
      
     } catch (error) {
@@ -52,14 +52,13 @@ export const fetchPostDetails = createAsyncThunk(
 
 // Async thunk to update user status
 export const updatePostStatus = createAsyncThunk(
-  "seo/updatePostStatus",
-  async ({ id,project_id, status, dispatch, setDataLoading}, { rejectWithValue }) => {
+  "collabrations/updateSEOStatus",
+  async ({ id, status, router, section }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/post/status`, { id, status, project_id });
+      const response = await axiosInstance.post(`/status`, { id, status });
       if (response?.data?.success === true) {
         toast.success(response?.data?.message);
-        setDataLoading(false)
-        dispatch(fetchPost(project_id))
+       
          
         
       }
@@ -70,83 +69,66 @@ export const updatePostStatus = createAsyncThunk(
   }
 );
 
-export const updatePostApprovalStatus = createAsyncThunk(
-  "seo/updatePostApprovalStatus",
-  async ({ id ,project_id, approval_status, dispatch, setDataLoading }, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.post(`/post/approvalstatus`, { id, approval_status, project_id });
-      if (response?.data?.success === true) {
-        toast.success(response?.data?.message);
-        setDataLoading(false)
-        dispatch(fetchPost(project_id))
-         
-        
-      }
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-const postSlice = createSlice({
-  name: "post",
+const collabrationSlice = createSlice({
+  name: "collabration",
   initialState: {
     list: [], 
-    postDetails: null,
+    employeeList: [],
+    collabrationDetails: null,
+    listLoading:false,
     loading: false,
     error: null,
   },
   reducers: {
-    clearpostDetails: (state) => {
-      state.postDetails = null;
+    clearcollabrationDetails: (state) => {
+      state.collabrationDetails = null;
     },
   },
   extraReducers: (builder) => {
     builder
       // Add post
-      .addCase(addPost.pending, (state) => {
+      .addCase(addcollabration.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(addPost.fulfilled, (state, action) => {
+      .addCase(addcollabration.fulfilled, (state, action) => {
         state.loading = false;
       })
-      .addCase(addPost.rejected, (state, action) => {
+      .addCase(addcollabration.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
       // Fetch posts
-      .addCase(fetchPost.pending, (state) => {
+      .addCase(fetchcollabration.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPost.fulfilled, (state, action) => {
+      .addCase(fetchcollabration.fulfilled, (state, action) => {
         state.loading = false;
         state.list = action.payload; // Store clients separately
        
       })
-      .addCase(fetchPost.rejected, (state, action) => {
+      .addCase(fetchcollabration.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
       // Fetch post Details
-      .addCase(fetchPostDetails.pending, (state) => {
+      .addCase(fetchcollabrationDetails.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPostDetails.fulfilled, (state, action) => {
+      .addCase(fetchcollabrationDetails.fulfilled, (state, action) => {
         state.loading = false;
-        state.postDetails = action.payload;
+        state.collabrationDetails = action.payload;
       })
-      .addCase(fetchPostDetails.rejected, (state, action) => {
+      .addCase(fetchcollabrationDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // Update Post Status
+      // Update User Status
       .addCase(updatePostStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -154,35 +136,19 @@ const postSlice = createSlice({
       .addCase(updatePostStatus.fulfilled, (state, action) => {
         state.loading = false;
         const updatedUser = action.payload;
-       
-        state.list = state.list.map(user =>
+        state.clientList = state.clientList.map(user =>
+          user.id === updatedUser.id ? { ...user, status: updatedUser.status } : user
+        );
+        state.employeeList = state.employeeList.map(user =>
           user.id === updatedUser.id ? { ...user, status: updatedUser.status } : user
         );
       })
       .addCase(updatePostStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
-
-      // Update Post Approval Status
-      .addCase(updatePostApprovalStatus.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updatePostApprovalStatus.fulfilled, (state, action) => {
-        state.loading = false;
-        const updatedUser = action.payload;
-       
-        state.list = state.list.map(user =>
-          user.id === updatedUser.id ? { ...user, approval_status: updatedUser.approval_status } : user
-        );
-      })
-      .addCase(updatePostApprovalStatus.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
       });
   },
 });
 
-export const { clearpostDetails } = postSlice.actions;
-export default postSlice.reducer;
+export const { clearcollabrationDetails } = collabrationSlice.actions;
+export default collabrationSlice.reducer;

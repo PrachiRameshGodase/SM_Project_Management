@@ -117,6 +117,65 @@ export const Dropdown001 = ({ options, selectedValue, onSelect, label, icon }) =
   );
 };
 
+export const Dropdown0001 = ({ options, selectedValue, onSelect, label, icon }) => {
+  const dropdownOutsideClick = OutsideClick();
+  const [selected, setSelected] = useState(selectedValue); // Store selected option
+
+  const handleOptionSelect = (value) => {
+    setSelected(value);
+    onSelect(value); // Pass selected value (1 for Yes, 0 for No)
+    dropdownOutsideClick.handleToggle(); // Close dropdown after selection
+  };
+
+  useEffect(() => {
+    setSelected(selectedValue); // Update state when selectedValue changes
+  }, [selectedValue]);
+
+  return (
+    <div className="relative" ref={dropdownOutsideClick?.ref}>
+      <div
+        className="h-10 flex items-center justify-between gap-2 border border-[#0000004D] rounded-lg px-3 py-2 cursor-pointer w-[310px] sm:w-[350px]  md:w-[400px]"
+        onClick={dropdownOutsideClick?.handleToggle}
+        ref={dropdownOutsideClick?.buttonRef}
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className={`text-gray-400 ${selected !== null ? "text-gray-700" : ""}`}>
+            {selected === 1 ? "Yes" : selected === 0 ? "No" : label}
+          </span>
+        </div>
+        {/* Dynamic Arrow Icon */}
+        <div className="ml-auto cursor-pointer" onClick={dropdownOutsideClick?.handleToggle}>
+          {dropdownOutsideClick?.isOpen ? (
+            <ChevronUp className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          )}
+        </div>
+      </div>
+
+      {/* Dropdown Menu */}
+      {dropdownOutsideClick?.isOpen && (
+        <div className="absolute top-[100%] mt-2 bg-white shadow-lg border border-[#0000004D] rounded-lg w-[310px] sm:w-[350px]  md:w-[400px] z-50">
+          <ul>
+            {options.map((option) => (
+              <li
+                key={option.value}
+                className={`flex px-4 py-2 hover:bg-gray-100 cursor-pointer text-left ${
+                  selected === option.value ? "bg-gray-200" : ""
+                }`}
+                onClick={() => handleOptionSelect(option.value)}
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export const DropdownStatus = ({ selectedValue, onSelect }) => {
   const dropdownOutsideClick = OutsideClick();

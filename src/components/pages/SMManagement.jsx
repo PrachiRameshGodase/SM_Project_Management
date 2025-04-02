@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import KanBanView from "../common/KanBanView/KanBanView";
 import Dropdown01 from "../common/Dropdown/Dropdown01";
-import { statusProject, taskView } from "../common/Helper/Helper";
+import { formatDate, getPlatformIcons, postStatus, statusProject, taskView } from "../common/Helper/Helper";
 import { OtherIcons } from "@/assests/icons";
 import { Drawer001 } from "../common/Drawer/Drawer01";
 import {
@@ -17,18 +17,19 @@ import Pagenation from "../common/Pagenation/Pagenation";
 import TableSkeleton from "../common/TableSkeleton/TableSkeleton";
 import TruncatedTooltipText from "../common/TruncatedTooltipText/TruncatedTooltipText";
 import DrawerSM from "../common/Drawer/DrawerSM";
+import { fetchPost, fetchPostDetails, updatePostApprovalStatus, updatePostStatus } from "@/app/store/smmangementSlice";
+import SortBy from "../common/Sort/SortBy";
+import DropdownStatus01, { DropdownStatus001 } from "../common/Dropdown/DropdownStatus01";
 
 const SMManagement = ({ itemId }) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
   const projectLoading = useSelector((state) => state.project);
-  const projectTaskListData = useSelector((state) => state.project?.list?.data);
-  const projectTaskLoading = useSelector((state) => state.project);
-  const totalCount = useSelector((state) => state?.project?.list?.total);
-  const taskDetailsData = useSelector(
-    (state) => state.project?.projectTaskDetails?.data
-  );
+  const postListData = useSelector((state) => state.post?.list?.data);
+  const postLoading = useSelector((state) => state.post);
+  const totalCount = useSelector((state) => state?.post?.list?.total);
+  const postDetailsData = useSelector((state) => state.post?.postDetails?.data);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedView, setSelectedView] = useState("List");
@@ -36,6 +37,9 @@ const SMManagement = ({ itemId }) => {
   const [isDrawerOpen1, setIsDrawerOpen1] = useState(false);
   const [itemId2, setItemId2] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [dataLoading, setDataLoading] = useState(true)
+  
+
 
   const handleTaskClick = (id) => {
     setItemId2(id);
@@ -81,18 +85,19 @@ const SMManagement = ({ itemId }) => {
     if (!itemId) return; // Ensure itemId is set before dispatching
 
     const sendData = {
-      project_id: itemId,
+      project_id: Number(itemId),
       limit: itemsPerPage,
       page: currentPage,
       ...(searchTermFromChild ? { search: searchTermFromChild } : {}),
       ...(selectedSortBy && { sort_by: selectedSortBy, sort_order: sortOrder }),
+      ...(selectedStatus ? { status: selectedStatus } : {}),
     };
 
-    dispatch(fetchProjectTasks(sendData));
+    dispatch(fetchPost(sendData));
   }, [searchTrigger, dispatch, selectedStatus, itemId]);
   useEffect(() => {
     if (itemId2) {
-      dispatch(fetchProjectTaskDetails(itemId2));
+      dispatch(fetchPostDetails(itemId2));
     }
   }, [dispatch, itemId2]);
 
@@ -101,8 +106,16 @@ const SMManagement = ({ itemId }) => {
     router.push(`/project/add-post`);
   };
 
+  const handleStatusChange = async (value, id) => {
+    dispatch(updatePostStatus({ id: id,project_id:Number(itemId), status: value, dispatch, setDataLoading }))
+  };
+
+  const handleApprovalStatusChange = async (value, id) => {
+    dispatch(updatePostApprovalStatus({ id: id,project_id:Number(itemId), approval_status: value, dispatch, setDataLoading }))
+  };
   return (
     <div>
+        {/* {projectLoading?.loading && !dataLoading && <ScreenFreezeLoader />} */}
       <div className="w-full h-[44px] mt-6  flex justify-between items-center px-2 sm:px-4  ">
         {/* Left Section (Heading + Count) */}
         <div className="flex">
@@ -114,7 +127,7 @@ const SMManagement = ({ itemId }) => {
           </p>
           <p
             className={`${
-              projectTaskLoading?.loading && "rotate_01"
+              postLoading?.loading && "rotate_01"
             } mt-[6px] hover:cursor-pointer`}
             data-tooltip-content="Reload"
             data-tooltip-place="bottom"
@@ -127,15 +140,15 @@ const SMManagement = ({ itemId }) => {
 
         {/* Right Section (Filters & Search) */}
         <div className="hidden min-[950px]:flex gap-6 items-center">
-          <Dropdown01
+          {/* <Dropdown01
             options={taskView}
             selectedValue={selectedView}
             onSelect={setSelectedView}
             label="View"
             icon={OtherIcons.view_svg}
-          />
+          /> */}
           <Dropdown01
-            options={statusProject}
+            options={postStatus}
             selectedValue={selectedStatus}
             onSelect={setSelectedStatus}
             label="Status"
@@ -271,13 +284,13 @@ const SMManagement = ({ itemId }) => {
 
           {/* Filter Options */}
           <div className="mt-16 flex flex-col gap-4 px-4">
-            <Dropdown01
+            {/* <Dropdown01
               options={taskView}
               selectedValue={selectedView}
               onSelect={setSelectedView}
               label="View"
               icon={OtherIcons.view_svg}
-            />
+            /> */}
             <Dropdown01
               options={statusProject}
               selectedValue={selectedStatus}
@@ -291,28 +304,35 @@ const SMManagement = ({ itemId }) => {
         </div>
       </div>
 
-      {selectedView == "List" && (
-        <>
+      {/* {selectedView == "List" && (
+        <> */}
           <div className="max-w-full  overflow-x-auto mt-6 ">
-            {projectLoading?.taskListLoading ? (
+            {(postLoading?.loading && dataLoading) ? (
               <TableSkeleton rows={7} columns={5} />
             ) : (
               <table className="w-full border-spacing-y-1 min-w-[1000px] border-2 border-transparent  ">
                 <thead className=" ">
                   <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
                     <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
-                      Post ID
-                      <span className="mt-1 pl-10 flex flex-col gap-1">
-                        {OtherIcons.arrow_up_svg}
-                        {OtherIcons.arrow_down_svg}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-800">POST ID</span>
+                        <SortBy
+                          setSearchTrigger={setSearchTrigger}
+                          selectedSortBy={selectedSortBy}
+                          setSelectedSortBy={setSelectedSortBy}
+                          sortOrder={sortOrder}
+                          setSortOrder={setSortOrder}
+                          sortOptions="post_id"
+                          resetPageIfNeeded={resetPageIfNeeded}
+                        />
+                      </div>
                     </th>
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
                       Scheduled Date
                     </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
+                    {/* <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
                       Created By
-                    </th>
+                    </th> */}
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
                       Platform
                     </th>
@@ -327,12 +347,12 @@ const SMManagement = ({ itemId }) => {
                       Team
                     </th>
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                      Status
+                    Approval  Status
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projectTaskListData?.map((item, index) => (
+                  {postListData?.map((item, index) => (
                     <tr
                       key={item?.id}
                       className="cursor-pointer  hover:bg-gray-100   hover:shadow-tr-border   rounded-md  transition-all duration-200"
@@ -341,75 +361,72 @@ const SMManagement = ({ itemId }) => {
                         className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   rounded "
                         onClick={() => handleTaskClick(item?.id)}
                       >
-                        {item?.task_title || ""}
-                      </td>
-                      <td
-                        className={`py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[14px]  min-w-[150px] rounded `}
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        <span
-                          className={`py-1 px-2 sm:px-2   text-[12px] sm:text-[14px]  border rounded-md ${
-                            item?.status === "To Do"
-                              ? "text-[#6C757D] border-[#6C757D]"
-                              : item?.status === "In progress"
-                              ? "text-[#CA9700] border-[#CA9700]"
-                              : item?.status === "Completed"
-                              ? "text-[#008053] border-[#008053]"
-                              : "text-[#0D4FA7] border-[#0D4FA7]"
-                          } inline-block`}
-                        >
-                          {item?.status || ""}
-                        </span>
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.due_date || ""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.task_type || ""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.task_type || ""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.task_type || ""}
+                        {item?.post_id || ""}
                       </td>
                      
+                      <td
+                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                        onClick={() => handleTaskClick(item?.id)}
+                      >
+                        {item?.scheduled_date ? formatDate(item?.scheduled_date) :"" || ""}
+                      </td>
+                     
+                      <td
+                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px] flex flex-row  "
+                        onClick={() => handleTaskClick(item?.id)}
+                      >
+                       
+                        {getPlatformIcons(item?.platform)}
+                      </td>
+                      <td
+                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                      >
+                          {item?.status ? (
+                            <DropdownStatus001
+                              options={postStatus}
+                              selectedValue={item?.status}
+                              onSelect={(value) => handleStatusChange(value, item?.id)}
+                              label="Status"
+                              className="w-[140px]"
+                              setDataLoading={setDataLoading}
+                            />
+                          ) : (
+                            "" 
+                          )}
+                      </td>
+                      <td
+                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                        onClick={() => handleTaskClick(item?.id)}
+                      >
+                        {item?.post_type || ""}
+                      </td>
+
                       <td
                         className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]  "
                         onClick={() => handleTaskClick(item?.id)}
                       >
                         <TruncatedTooltipText
-                          text={item?.team_names?.join(", ")}
+                          text={item?.team_members?.map((item)=>item?.name).join(", ")}
                           maxLength={25}
                         />
                       </td>
                       <td
                         className={` text-[12px] sm:text-[14px] `}
-                        onClick={() => handleTaskClick(item?.id)}
                       >
-                        <span
-                          className={`py-1 px-2 sm:px-4   text-[12px] sm:text-[14px]  border rounded-md ml-4  ${
-                            item?.priority === "High"
-                              ? "text-[#4976F4] border-[#4976F4]"
-                              : item?.priority === "Low"
-                              ? "text-red-400 border-red-400"
-                              : "text-[#954BAF] border-[#954BAF]"
-                          } inline-block`}
-                        >
-                          {item?.priority}
-                        </span>
+                       
+                       {item?.approval_status ? (
+                            <DropdownStatus01
+                              options={statusProject}
+                              selectedValue={item?.approval_status}
+                              onSelect={(value) => handleApprovalStatusChange(value, item?.id)}
+                              label="Status"
+                              className="w-[140px]"
+                              setDataLoading={setDataLoading}
+                            />
+                          ) : (
+                            ""
+                          )}
+                       
                       </td>
                     </tr>
                   ))}
@@ -426,8 +443,8 @@ const SMManagement = ({ itemId }) => {
             setItemsPerPage={setItemsPerPage}
             setSearchCall={setSearchTrigger}
           />
-        </>
-      )}
+        {/* </>
+      )} */}
 
       {selectedView == "Kanban" && (
         <KanBanView groupedUsers={projectTaskListData} />
@@ -438,7 +455,7 @@ const SMManagement = ({ itemId }) => {
         setIsDrawerOpen={setIsDrawerOpen1}
         itemId2={itemId}
         itemId={itemId2}
-        details={taskDetailsData}
+        details={postDetailsData}
       />
     </div>
   );

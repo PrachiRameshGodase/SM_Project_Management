@@ -4,8 +4,10 @@ import userReducer from "./userSlice";
 import projectReducer from "./projectSlice"
 import dashboardReducer from "./dashboardSlice"
 import notificationReducer from "./notificationSlice"
-
-
+import smmangementReducer from "./smmangementSlice"
+import campaignReducer from "./campaignSlice"
+import seoReducer from "./seoSlice"
+import collabrationReducer from "./collabrationSlice"
 
 export const store = configureStore({
     reducer: {
@@ -13,6 +15,10 @@ export const store = configureStore({
         user: userReducer,
         project: projectReducer,
         dashboard: dashboardReducer,
-        notification: notificationReducer
+        notification: notificationReducer,
+        post:smmangementReducer,
+        campaign:campaignReducer,
+        seo:seoReducer,
+        collabration:collabrationReducer
     }
 })

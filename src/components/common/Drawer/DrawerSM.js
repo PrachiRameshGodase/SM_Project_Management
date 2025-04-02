@@ -6,7 +6,7 @@ import { OtherIcons } from "@/assests/icons";
 import AttachmentPreview from "../Attachments/AttachmentPreview";
 import DropdownStatus01 from "../Dropdown/DropdownStatus01";
 import CommentBox from "../CommentBox/CommentBox";
-import { statusProject } from "../Helper/Helper";
+import { formatDate, getPlatformIcons, statusProject } from "../Helper/Helper";
 import {
   fetchProjectTaskDetails,
   updateProjectStatus,
@@ -29,7 +29,7 @@ const DrawerSM = ({
   const router = useRouter();
   const dispatch = useDispatch();
   const userData = useUserData()
-  const documents = details?.attachments ? JSON.parse(details?.attachments) : []
+  const documents = details?.media_upload ? JSON.parse(details?.media_upload) : []
   const [isActive, setIsActive] = useState(details?.project_status || "");
   const [isActive2, setIsActive2] = useState(details?.status || "");
 
@@ -98,18 +98,24 @@ const DrawerSM = ({
         <div className="flex justify-between">
           <div className="w-full h-[69px] flex items-center justify-between ">
             <div className="text-xl text-gray-700 ">
-              <p className="font-bold">{details?.project_name || "--"}</p>
+              <p className="font-bold">{details?.brand_name || ""}</p>
               <p className="text-xs text-gray-500">
-                {details?.client?.name || "--"}
+                {details?.post_type || ""}
               </p>
             </div>
-            <DropdownStatus01
-              options={statusProject}
-              selectedValue={details?.status}
-              onSelect={(value) => handleStatusChange(value)}
-              label="Status"
-              className="w-[150px]"
-            />
+            <span
+              className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
+        ${details?.approval_status === "To Do"
+                  ? "text-[#6C757D] border-[#6C757D]"
+                  : details?.approval_status === "In progress"
+                    ? "text-[#CA9700] border-[#CA9700]"
+                    : details?.approval_status === "Completed"
+                      ? "text-[#008053] border-[#008053]"
+                      : "text-[#0D4FA7] border-[#0D4FA7]"
+                }`}
+            >
+              {details?.approval_status}
+            </span>
           </div>
           {/* <div>
                         <button className="w-[100px] h-[35px] rounded-[4px] py-[4px] bg-black text-white text-[16px] mb-2 p-4 mt-4">
@@ -117,7 +123,7 @@ const DrawerSM = ({
                         </button>
                     </div> */}
         </div>
-        <div className="flex justify-end">
+        {/* <div className="flex justify-end">
           <div className="flex items-center mr-2">
             <label className="flex items-center cursor-pointer">
               <span className="ml-2 text-[15px] mr-2">
@@ -153,87 +159,99 @@ const DrawerSM = ({
               </div>
             </label>
           </div>
-        </div>
+        </div> */}
         {/* Project Details Section */}
         <div className="mb-4 mt-4 ml-[5px]">
           <p className="text-xl leading-6">Post Details</p>
           <ul className=" h-[22px] mt-[20px] ">
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Post ID              
+                Post ID
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.priority || ""}
+                {details?.post_id || ""}
               </span>
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Platform
+                Platform
               </span>
               <h4>:</h4>
-              <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.project_stage}
+              <span className="text-gray-700 w-[200px] text-[14px] flex flex-row ">
+                {getPlatformIcons(details?.platform)}
+
               </span>
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Post Type
+                Post Type
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.start_date || ""}
+                {details?.post_type || ""}
               </span>
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Starting Date
+                Scheduled Date
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.due_date || ""}
+                                        {details?.scheduled_date ? formatDate(details?.scheduled_date) :"" || ""}
+                
               </span>
             </li>
-            <li className="flex mb-2 gap-4">
+            {/* <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Created By
+                Created By
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.project_leader?.name || ""}
+                {details?.created_by || ""}
               </span>
-            </li>
+            </li> */}
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Approval Status
+                Approval Status
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.project_leader?.name || ""}
+                {details?.approval_status || ""}
               </span>
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">Team</span>
               <h4>:</h4>
-              <span className="text-gray-700 w-[200px] text-[14px]">{details?.team_leaders?.map((item) => item?.first_name + " " + item?.last_name).join(", ") || ""}</span>
+              <span className="text-gray-700 w-[200px] text-[14px]">{details?.team_members?.map((item) => item?.first_name + " " + item?.last_name).join(", ") || ""}</span>
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Post Caption              
+                Post Caption
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.description || ""}
+                {details?.post_caption || ""}
               </span>
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
-              Post URL              
+                Post URL
               </span>
               <h4>:</h4>
-              <span className="text-gray-700 w-[200px] text-[14px]">
-                {details?.description || ""}
-              </span>
+              {details?.post_url ? (
+                <a
+                  href={details?.post_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 w-[200px] text-[14px] underline cursor-pointer"
+                >
+                  {details?.post_url}
+                </a>
+              ) : (
+                <span className="text-gray-700 w-[200px] text-[14px]"></span>
+              )}
+
             </li>
             <li className="flex mb-2 gap-4">
               <span className="text-gray-400 w-[120px] text-[14px]">
@@ -250,7 +268,7 @@ const DrawerSM = ({
 
         {/* Comment Section */}
         <div className="mt-[390px] mb-[20px]">
-          <CommentBox projectId={itemId} taskId="" />
+          {/* <CommentBox projectId={itemId} taskId="" /> */}
         </div>
       </div>
     </motion.div>

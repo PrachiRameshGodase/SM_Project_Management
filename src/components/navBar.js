@@ -53,23 +53,23 @@ const NavBar = () => {
 
 
 
-  useEffect(() => {
-    if (!userData?.id) return; // Prevent unnecessary calls
+  // useEffect(() => {
+  //   if (!userData?.id) return; // Prevent unnecessary calls
 
-    const fetchNotifications = () => {
-      const sendData = { user_id: userData.id };
-      dispatch(fetchNotification({ sendData }));
-    };
+  //   const fetchNotifications = () => {
+  //     const sendData = { user_id: userData.id };
+  //     dispatch(fetchNotification({ sendData }));
+  //   };
 
-    // Call API immediately
-    fetchNotifications();
+  //   // Call API immediately
+  //   fetchNotifications();
 
-    // Set interval to call API every 2 minutes (120,000 ms)
-    const interval = setInterval(fetchNotifications, 6000);
+  //   // Set interval to call API every 2 minutes (120,000 ms)
+  //   const interval = setInterval(fetchNotifications, 6000);
 
-    // Cleanup function to clear interval when component unmounts
-    return () => clearInterval(interval);
-  }, [dispatch, userData?.id]);
+  //   // Cleanup function to clear interval when component unmounts
+  //   return () => clearInterval(interval);
+  // }, [dispatch, userData?.id]);
 
 
 

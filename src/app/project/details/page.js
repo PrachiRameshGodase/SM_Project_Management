@@ -119,7 +119,7 @@ const TaskList = () => {
     "SEO",
     "Collaborations",
   ];
-console.log("itemId", itemId)
+console.log("itemIddetailpageeeeeeeeeee", itemId)
   const renderComponent = () => {
     switch (active) {
       case 0:

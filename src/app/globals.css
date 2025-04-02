@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import '../Fonts/WEB/css/supreme.css'; 
+/* @import '../Fonts/WEB/css/supreme.css';  */
 
 *{
   box-sizing: border-box;
@@ -9,7 +9,9 @@
   margin: 0;
 }
 body {
-  font-family: 'Supreme-Medium', sans-serif;
+  /* font-family: 'Supreme-Medium', sans-serif; */
+  /* font-family: Arial, sans-serif; */
+  font-family: Inter, "Source Sans Pro", Helvetica, Arial, sans-serif;
 }
 
 :root {
@@ -26,7 +28,7 @@ body {
 
 /* Tailwind custom scrollbar */
 .drawer-scrollbar::-webkit-scrollbar {
-  width: 6px; /* Set the width of the scrollbar */
+  width: 2px; /* Set the width of the scrollbar */
 }
 
 .drawer-scrollbar::-webkit-scrollbar-thumb {
@@ -63,3 +65,20 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.notdatafound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 460px;
+
+  iframe {
+    height: 450px;
+    width: max-content;
+  }
+
+  svg {
+    height: 250px;
+  }
+}
+

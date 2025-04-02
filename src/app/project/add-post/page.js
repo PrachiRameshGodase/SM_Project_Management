@@ -1,12 +1,13 @@
 "use client"
 import { addProjectTask, fetchProjectTaskDetails } from '@/app/store/projectSlice'
+import { addPost } from '@/app/store/smmangementSlice'
 import { fetchUsers } from '@/app/store/userSlice'
 import { OtherIcons } from '@/assests/icons'
 import FileUpload from '@/components/common/Attachments/FileUpload'
 import CustomDatePicker from '@/components/common/DatePicker/CustomDatePicker'
 import { Dropdown001 } from '@/components/common/Dropdown/Dropdown01'
 import { Dropdown002, Dropdown02 } from '@/components/common/Dropdown/Dropdown02'
-import { departmentOptions, projectPriority, taskType, taskVisibility } from '@/components/common/Helper/Helper'
+import { departmentOptions, postPlatform, postType, projectPriority, taskType, taskVisibility } from '@/components/common/Helper/Helper'
 import LayOut from '@/components/LayOut'
 import { CircleX } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -18,7 +19,7 @@ const AddPost = () => {
     const router = useRouter()
     const dispatch = useDispatch();
     const usersList = useSelector((state) => state.user?.employeeList?.data);
-    const addTaskLoading = useSelector((state) => state.project);
+    const addPostLoading = useSelector((state) => state.post);
 
     const [itemId2, setStoredValue] = useState(null);
 
@@ -31,7 +32,7 @@ const AddPost = () => {
         }
     }, []);
 
-    
+
     const [itemId, setItemId] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     useEffect(() => {
@@ -57,20 +58,22 @@ const AddPost = () => {
 
     const [formData, setFormData] = useState({
         project_id: "",
-        task_title: "",
-        task_type: "",
-        due_date: "",
-        priority: "",
-        department: "",
+        brand_name: "",
+        platform: "",
+        post_type: "",
+        post_caption: "",
+        post_url: "",
+        media_upload: "",
         team: "",
-        link: "",
-        visibility: "",
         description: "",
-        attachment: [],
+        // post_status: 0,
+        scheduled_date: "",
+        // approval_status: 0
+
     })
-    console.log("formData", formData)
+    // console.log("formData", formData)
     const [errors, setErrors] = useState({
-        task_title: false,
+        brand_name: false,
 
     })
     const handleChange = (e) => {
@@ -85,7 +88,7 @@ const AddPost = () => {
         }));
     }
     const handleDropdownChange = (field, value) => {
-        setFormData(prevState => ({
+       setFormData(prevState => ({
             ...prevState,
             [field]: value
         }))
@@ -96,10 +99,10 @@ const AddPost = () => {
             setFormData(prev => ({ ...prev, project_id: itemId2 }));
         }
     }, [itemId2]);
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e, status) => {
         e.preventDefault();
         let newErrors = {
-            task_title: formData?.task_title ? false : true,
+            brand_name: formData?.brand_name ? false : true,
 
         }
         setErrors(newErrors);
@@ -114,7 +117,14 @@ const AddPost = () => {
             return;
         } else {
             try {
-                dispatch(addProjectTask({ projectData: formData, router, itemId, itemId2 }));
+                const updatedFormData = {
+                    ...formData,
+                    post_status: status,
+                    platform:JSON.stringify(formData?.platform),
+                    media_upload: JSON.stringify(formData.media_upload || []), // Ensure JSON string format
+                    team: JSON.stringify(formData.team || []), // Ensure JSON string format
+                };
+                dispatch(addPost({ projectData: updatedFormData, router, itemId2 }));
             } catch (error) {
                 console.error("Error updating user:", error);
             }
@@ -151,19 +161,19 @@ const AddPost = () => {
                 <div className="text-2xl tracking-tight ml-4 sm:ml-[7px] text-[32px]  w-full ">{itemId ? "Update Post" : "Add New Post"}</div>
 
                 <div className="sm:flex justify-center items-center h-screen mx-auto sm:-mt-16 xl:lg:-mt-18">
-                    <form className="w-full sm:w-[650px] mb-4 h-[656px] bg-white p-8 rounded-lg space-y-6" onSubmit={handleSubmit}>
+                    <form className="w-full sm:w-[650px] mb-4 h-[656px] bg-white p-8 rounded-lg space-y-6" >
                         <div className="sm:flex flex-col sm:flex-row justify-between">
                             <label className="block text-[20px]">Brand Name<span className="text-red-600">*</span></label>
                             <div className="flex flex-col">
                                 <input
                                     className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-[#0000004D] rounded-lg p-2 text-m sm:ml-7 placeholder:text-gray-400"
                                     type='text'
-                                    placeholder='Enter Task Title'
-                                    value={formData?.task_title}
+                                    placeholder='Enter Brand Name'
+                                    value={formData?.brand_name}
                                     onChange={handleChange}
-                                    name='task_title'
+                                    name='brand_name'
                                 />
-                                {errors?.task_title && (
+                                {errors?.brand_name && (
                                     <p className="text-red-500 text-sm flex items-center mt-1 sm:ml-7">
                                         {OtherIcons.error_svg} <span className="ml-1">Please Enter Brand Name</span>
                                     </p>
@@ -174,10 +184,10 @@ const AddPost = () => {
 
                         <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Platform</label>
-                            <Dropdown001
-                                options={taskType}
-                                selectedValue={formData?.task_type}
-                                onSelect={(value) => handleDropdownChange("task_type", value)}
+                            <Dropdown02
+                                options={postPlatform}
+                                selectedValue={formData?.platform}
+                                onSelect={(value) => handleDropdownChange("platform", value)}
                                 label="Select Platform"
                             />
                         </div>
@@ -185,37 +195,29 @@ const AddPost = () => {
                         <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Post Type</label>
                             <Dropdown001
-                                options={taskType}
-                                selectedValue={formData?.task_type}
-                                onSelect={(value) => handleDropdownChange("task_type", value)}
-                                label="Post Type"
+                                options={postType}
+                                selectedValue={formData?.post_type}
+                                onSelect={(value) => handleDropdownChange("post_type", value)}
+                                label="Select Post Type"
                             />
                         </div>
 
                         <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Post Caption</label>
-                            <textarea className="w-[310px] sm:w-[350px] md:w-[400px] h-40 border border-gray-300 rounded-lg p-2 text-m ml-[35px] placeholder:text-gray-400" type='text' placeholder='Post Caption' value={formData?.description} name='description' onChange={handleChange} />
+                            <textarea className="w-[310px] sm:w-[350px] md:w-[400px] h-40 border border-gray-300 rounded-lg p-2 text-m ml-[35px] placeholder:text-gray-400" type='text' placeholder='Post Caption' value={formData?.post_caption} name='post_caption' onChange={handleChange} />
 
                         </div>
 
                         <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Media Upload</label>
-                            <FileUpload onFilesChange={(files) => { setFormData((prev) => ({ ...prev, attachment: files, })) }} initialFiles={formData.attachment} />
+                            <FileUpload onFilesChange={(files) => { setFormData((prev) => ({ ...prev, media_upload: files, })) }} initialFiles={formData.attachment} />
                         </div>
 
-                        <div className="sm:flex justify-between">
-                            <label className="block text-[20px]">Post Status</label>
-                            <Dropdown001
-                                options={taskType}
-                                selectedValue={formData?.task_type}
-                                onSelect={(value) => handleDropdownChange("task_type", value)}
-                                label="Select Platform"
-                            />
-                        </div>
+
 
                         <div className="flex justify-between">
                             <label className="block text-[20px]">Link</label>
-                            <input className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-gray-400 rounded-lg p-2 text-m ml-[78px] placeholder:text-gray-400" type='text' placeholder='Enter Link' value={formData?.link} name='link' onChange={handleChange} />
+                            <input className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-gray-400 rounded-lg p-2 text-m ml-[78px] placeholder:text-gray-400" type='text' placeholder='Enter Link' value={formData?.post_url} name='post_url' onChange={handleChange} />
                         </div>
 
                         <div className="sm:flex justify-between">
@@ -230,38 +232,43 @@ const AddPost = () => {
 
                         <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Scheduled Date</label>
+
+
                             <CustomDatePicker
-                                selectedDate={formData?.due_date}
-                                onSelect={(value) => handleDropdownChange("due_date", value)}
-                                label="Select Scheduled Date" />
+                                selectedDate={formData?.scheduled_date}
+                                onChange={(date) => handleDropdownChange("scheduled_date", date)} />
                         </div>
                         <div className="flex justify-between">
                             <label className="block text-[20px]">Description</label>
                             <textarea className="w-[310px] sm:w-[350px] md:w-[400px] h-40 border border-gray-300 rounded-lg p-2 text-m ml-[35px] placeholder:text-gray-400" type='text' placeholder='Enter Description' value={formData?.description} name='description' onChange={handleChange} />
                         </div>
 
-                        <div className='sm:flex w-full justify-end'>
+                        <div className="sm:flex w-full justify-end gap-4">
+                            <button
+                                type="button"
+                                className="w-[110px] sm:w-[145px] md:w-[190px] h-10 border border-gray-50 rounded-lg p-2 text-m bg-gray-100 text-gray-400 flex items-center justify-center hover:bg-black hover:text-gray-200"
+                                onClick={(e) => handleSubmit(e, 0)}
+                                disabled={addPostLoading?.loading}
+                            >
+                                Save As Draft
+                            </button>
                             <button
                                 type="submit"
-                                className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-[#0000004D] rounded-lg p-2 text-m bg-black text-gray-100 flex items-center justify-center"
-                                disabled={addTaskLoading?.loading}
+                                className="w-[110px] sm:w-[145px] md:w-[190px] h-10 border border-[#0000004D] rounded-lg p-2 text-m bg-black text-gray-100 flex items-center justify-center"
+                                onClick={(e) => handleSubmit(e, 1)}
+                                disabled={addPostLoading?.loading}
                             >
-                                {addTaskLoading?.loading ? (
-                                    <div className="w-5 h-5 border-2 border-gray-100 border-t-transparent rounded-full animate-spin"></div>
+                                {addPostLoading?.loading ? (
+                                    <div className="w-3 h-5 border-2 border-gray-100 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
-                                    itemId ? "Update" : "Submit"
+                                    itemId ? "Update Post" : "Post Now"
                                 )}
                             </button>
                         </div>
+
                     </form>
                 </div>
-                {/* <div className=" flex justify-end ">
-                    <button
-                        onClick={handleClose}
-                        className="text-gray-700 hover:text-black">
-                        <CircleX size={30} strokeWidth={1.5} />
-                    </button>
-                </div> */}
+
             </div>
         </LayOut>
     )
