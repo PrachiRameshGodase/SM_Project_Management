@@ -1,6 +1,7 @@
 "use client"
+import { fetchCampaignDetails } from '@/app/store/campaignSlice'
 import { addProjectTask, fetchProjectTaskDetails } from '@/app/store/projectSlice'
-import { addPost } from '@/app/store/smmangementSlice'
+import { addPost, fetchPostDetails } from '@/app/store/smmangementSlice'
 import { fetchUsers } from '@/app/store/userSlice'
 import { OtherIcons } from '@/assests/icons'
 import FileUpload from '@/components/common/Attachments/FileUpload'
@@ -20,6 +21,7 @@ const AddPost = () => {
     const dispatch = useDispatch();
     const usersList = useSelector((state) => state.user?.employeeList?.data);
     const addPostLoading = useSelector((state) => state.post);
+    const postDetailsData = useSelector((state) => state.post?.postDetails?.data);
 
     const [itemId2, setStoredValue] = useState(null);
 
@@ -31,7 +33,7 @@ const AddPost = () => {
             }
         }
     }, []);
-
+console.log("itemId2",itemId2)
 
     const [itemId, setItemId] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -42,10 +44,10 @@ const AddPost = () => {
             setIsEditMode(params.get("edit") === "true"); // Convert string to boolean
         }
     }, []);
-    const taskDetailsData = useSelector((state) => state.project?.projectTaskDetails?.data);
+
     useEffect(() => {
         if (itemId) {
-            dispatch(fetchProjectTaskDetails(itemId));
+            dispatch(fetchPostDetails(itemId));
         }
     }, [dispatch, itemId]);
 
@@ -137,24 +139,25 @@ const AddPost = () => {
     }
 
     useEffect(() => {
-        if (taskDetailsData && itemId) {
+        if (postDetailsData && itemId) {
             setFormData({
-                id: taskDetailsData?.id,
-                project_id: taskDetailsData?.project_id,
-                task_title: taskDetailsData?.task_title,
-                task_type: taskDetailsData?.task_type,
-                due_date: taskDetailsData?.due_date,
-                priority: taskDetailsData?.priority,
-                department: taskDetailsData?.department,
-                link: taskDetailsData?.link,
-                visibility: taskDetailsData?.visibility,
-                description: taskDetailsData?.description,
-                attachment: taskDetailsData?.attachments ? JSON.parse(taskDetailsData?.attachments) : [],
-                team: taskDetailsData?.team?.map((item) => item?.id)
+                id: postDetailsData?.id,
+                project_id: postDetailsData?.project_id,
+                brand_name: postDetailsData?.brand_name,
+                platform:  postDetailsData?.platform? JSON.parse(postDetailsData.platform): [],
+                post_type: postDetailsData?.post_type,
+                post_caption: postDetailsData?.post_caption,
+                post_url: postDetailsData?.post_url,
+                description: postDetailsData?.description,
+                media_upload: postDetailsData?.media_upload ? JSON.parse(postDetailsData?.media_upload) : [],
+                team: postDetailsData?.team_members?.map((item) => item?.id),
+                scheduled_date: postDetailsData?.scheduled_date,
+                post_status:postDetailsData?.post_status
+                
             });
         }
-    }, [taskDetailsData, itemId]);
-
+    }, [postDetailsData, itemId]);
+console.log("formData", formData)
     return (
         <LayOut>
             <div className="sm:flex mx-auto sm:mx-0  flex-col items-center justify-center">
@@ -210,7 +213,7 @@ const AddPost = () => {
 
                         <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Media Upload</label>
-                            <FileUpload onFilesChange={(files) => { setFormData((prev) => ({ ...prev, media_upload: files, })) }} initialFiles={formData.attachment} />
+                            <FileUpload onFilesChange={(files) => { setFormData((prev) => ({ ...prev, media_upload: files, })) }} initialFiles={formData.media_upload} />
                         </div>
 
 
@@ -247,7 +250,7 @@ const AddPost = () => {
                             <button
                                 type="button"
                                 className="w-[110px] sm:w-[145px] md:w-[190px] h-10 border border-gray-50 rounded-lg p-2 text-m bg-gray-100 text-gray-400 flex items-center justify-center hover:bg-black hover:text-gray-200"
-                                onClick={(e) => handleSubmit(e, 0)}
+                                onClick={(e) => handleSubmit(e, "Draft")}
                                 disabled={addPostLoading?.loading}
                             >
                                 Save As Draft
@@ -255,7 +258,7 @@ const AddPost = () => {
                             <button
                                 type="submit"
                                 className="w-[110px] sm:w-[145px] md:w-[190px] h-10 border border-[#0000004D] rounded-lg p-2 text-m bg-black text-gray-100 flex items-center justify-center"
-                                onClick={(e) => handleSubmit(e, 1)}
+                                onClick={(e) => handleSubmit(e, "Scheduled")}
                                 disabled={addPostLoading?.loading}
                             >
                                 {addPostLoading?.loading ? (

@@ -1,13 +1,9 @@
 "use client"
-import { addCampaign } from '@/app/store/campaignSlice'
-import { addProjectTask, fetchProjectTaskDetails } from '@/app/store/projectSlice'
+import { addCampaign, fetchCampaignDetails } from '@/app/store/campaignSlice'
 import { fetchUsers } from '@/app/store/userSlice'
 import { OtherIcons } from '@/assests/icons'
-import FileUpload from '@/components/common/Attachments/FileUpload'
-import CustomDatePicker from '@/components/common/DatePicker/CustomDatePicker'
 import { Dropdown001 } from '@/components/common/Dropdown/Dropdown01'
-import { Dropdown002 } from '@/components/common/Dropdown/Dropdown02'
-import { campaignType, postPlatform, taskType } from '@/components/common/Helper/Helper'
+import { campaignType } from '@/components/common/Helper/Helper'
 import LayOut from '@/components/LayOut'
 import FacebookCampaign from '@/components/pages/FacebookCampaign'
 import GoogleCampaign from '@/components/pages/GoogleCampaign'
@@ -22,8 +18,10 @@ import Swal from 'sweetalert2'
 const AddCampaigns = () => {
     const router = useRouter()
     const dispatch = useDispatch();
+
     const usersList = useSelector((state) => state.user?.employeeList?.data);
-    const addTaskLoading = useSelector((state) => state.project);
+    const addCampaignLoading = useSelector((state) => state.campaign);
+    const campaignDetailsData = useSelector((state) => state.campaign?.campaignDetails?.data);
 
     const [itemId2, setStoredValue] = useState(null);
 
@@ -46,10 +44,10 @@ const AddCampaigns = () => {
             setIsEditMode(params.get("edit") === "true"); // Convert string to boolean
         }
     }, []);
-    const taskDetailsData = useSelector((state) => state.project?.projectTaskDetails?.data);
+
     useEffect(() => {
         if (itemId) {
-            dispatch(fetchProjectTaskDetails(itemId));
+            dispatch(fetchCampaignDetails(itemId));
         }
     }, [dispatch, itemId]);
 
@@ -76,7 +74,6 @@ const AddCampaigns = () => {
         read_users: "",
         replied_users: "",
         notes: "",
-
         destination_url: "",
         goal: "",
         topic: "",
@@ -90,6 +87,8 @@ const AddCampaigns = () => {
         distribution_area: "",
         distribution_method: "",
         total_quantity_distributed: null,
+        total_quantity_printed: null,
+
 
     })
 
@@ -157,24 +156,40 @@ const AddCampaigns = () => {
     }
 
     useEffect(() => {
-        if (taskDetailsData && itemId) {
+        if (campaignDetailsData && itemId) {
             setFormData({
-                id: taskDetailsData?.id,
-                project_id: taskDetailsData?.project_id,
-                task_title: taskDetailsData?.task_title,
-                task_type: taskDetailsData?.task_type,
-                due_date: taskDetailsData?.due_date,
-                priority: taskDetailsData?.priority,
-                department: taskDetailsData?.department,
-                link: taskDetailsData?.link,
-                visibility: taskDetailsData?.visibility,
-                description: taskDetailsData?.description,
-                attachment: taskDetailsData?.attachments ? JSON.parse(taskDetailsData?.attachments) : [],
-                team: taskDetailsData?.team?.map((item) => item?.id)
+                id: campaignDetailsData?.id,
+                project_id: campaignDetailsData?.project_id,
+                platforms: campaignDetailsData?.platforms,
+                campaign_name: campaignDetailsData?.campaign_name,
+                campaign_type: campaignDetailsData?.campaign_type,
+                campaign_goal: campaignDetailsData?.campaign_goal,
+                ad_type: campaignDetailsData?.ad_type,
+                start_date: campaignDetailsData?.start_date,
+                end_date: campaignDetailsData?.end_date,
+                media_upload: campaignDetailsData?.media_upload ? JSON.parse(campaignDetailsData?.media_upload) : [],
+                attempted_users: campaignDetailsData?.attempted_users,
+                sent_users: campaignDetailsData?.sent_users,
+                read_users: campaignDetailsData?.read_users,
+                replied_users: campaignDetailsData?.replied_users,
+                notes: campaignDetailsData?.notes,
+                destination_url: campaignDetailsData?.destination_url,
+                topic: campaignDetailsData?.topic,
+                engagement: campaignDetailsData?.engagement,
+                target_audience: campaignDetailsData?.target_audience,
+                link_clicks: campaignDetailsData?.link_clicks,
+                branches: campaignDetailsData?.branches,
+                ad_copy: campaignDetailsData?.ad_copy,
+                video_url: campaignDetailsData?.video_url,
+                budget: campaignDetailsData?.budget,
+                distribution_area: campaignDetailsData?.distribution_area,
+                distribution_method: campaignDetailsData?.distribution_method,
+                total_quantity_distributed: campaignDetailsData?.total_quantity_distributed,
+                total_quantity_printed: campaignDetailsData?.total_quantity_printed,
+                team: campaignDetailsData?.team_names?.map((item) => item?.id)
             });
         }
-    }, [taskDetailsData, itemId]);
-    const [selectedPlatform, setSelectedPlatform] = useState("WhatsApp");
+    }, [campaignDetailsData, itemId]);
 
     let CampaignComponent;
     switch (formData?.platforms) {
@@ -248,7 +263,7 @@ const AddCampaigns = () => {
                                 label="Select Campaign Type"
                             />
                         </div>
-                        {(formData?.campaign_type == "Whatsapp Marketing" || formData?.campaign_type == "Paid Advertising")  && <div className="sm:flex justify-between">
+                        {(formData?.campaign_type == "Whatsapp Marketing" || formData?.campaign_type == "Paid Advertising") && <div className="sm:flex justify-between">
                             <label className="block text-[20px]">Platforms</label>
                             <Dropdown001
                                 options={postPlatform}
@@ -268,9 +283,9 @@ const AddCampaigns = () => {
                             <button
                                 type="submit"
                                 className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-[#0000004D] rounded-lg p-2 text-m bg-black text-gray-100 flex items-center justify-center"
-                                disabled={addTaskLoading?.loading}
+                                disabled={addCampaignLoading?.loading}
                             >
-                                {addTaskLoading?.loading ? (
+                                {addCampaignLoading?.loading ? (
                                     <div className="w-5 h-5 border-2 border-gray-100 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
                                     itemId ? "Update" : "Send Now"

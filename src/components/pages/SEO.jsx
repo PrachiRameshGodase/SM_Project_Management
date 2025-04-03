@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import KanBanView from "../common/KanBanView/KanBanView";
 import Dropdown01 from "../common/Dropdown/Dropdown01";
-import { statusProject, taskView } from "../common/Helper/Helper";
+import { formatDate, statusProject, taskView } from "../common/Helper/Helper";
 import { OtherIcons } from "@/assests/icons";
 import { Drawer001 } from "../common/Drawer/Drawer01";
 import {
@@ -20,6 +20,7 @@ import DrawerSM from "../common/Drawer/DrawerSM";
 import { fetchSEO, fetchSEODetails } from "@/app/store/seoSlice";
 import KanBanView2 from "../common/KanBanView/KanBanView2";
 import DrawerSEO from "../common/Drawer/DrawerSEO";
+import DropdownStatus01, { DropdownStatus00001 } from "../common/Dropdown/DropdownStatus01";
 
 const SEO = ({ itemId }) => {
   const router = useRouter();
@@ -29,9 +30,7 @@ const SEO = ({ itemId }) => {
   const seoListData = useSelector((state) => state.seo?.list?.data);
   // const seoLoading = useSelector((state) => state.project);
   const totalCount = useSelector((state) => state?.seo?.list?.total);
-  const seoDetailsData = useSelector(
-    (state) => state.seo?.postDetails?.data
-  );
+  const seoDetailsData = useSelector((state) => state.seo?.postDetails?.data);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedView, setSelectedView] = useState("List");
@@ -304,25 +303,24 @@ const SEO = ({ itemId }) => {
                 <thead className=" ">
                   <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
                     <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
-                    SEO Task Name
+                      SEO Task Name
                       <span className="mt-1 pl-10 flex flex-col gap-1">
                         {OtherIcons.arrow_up_svg}
                         {OtherIcons.arrow_down_svg}
                       </span>
                     </th>
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    STATUS
+                      STATUS
                     </th>
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
                       Date
                     </th>
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
-                    Search Volume
+                      Search Volume
                     </th>
 
-                   
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    Traffic
+                      Traffic
                     </th>
                     <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
                       Page URL
@@ -348,25 +346,37 @@ const SEO = ({ itemId }) => {
                         className={`py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[14px]  min-w-[150px] rounded `}
                         onClick={() => handleTaskClick(item?.id)}
                       >
-                        <span
+                        {item?.status ? (
+                            <DropdownStatus00001
+                              options={statusProject}
+                              selectedValue={item?.status}
+                              // onSelect={(value) => handleStatusChange(value, item?.id)}
+                              label="Status"
+                              className="w-[140px]"
+                              setDataLoading={setDataLoading}
+                            />
+                          ) : (
+                            "" // Placeholder for empty status
+                          )}
+                        {/* <span
                           className={`py-1 px-2 sm:px-2   text-[12px] sm:text-[14px]  border rounded-md ${
-                            item?.status === "To Do"
+                            item?.status == "0"
                               ? "text-[#6C757D] border-[#6C757D]"
-                              : item?.status === "In progress"
+                              : item?.status == "1"
                               ? "text-[#CA9700] border-[#CA9700]"
-                              : item?.status === "Completed"
+                              : item?.status == "2"
                               ? "text-[#008053] border-[#008053]"
                               : "text-[#0D4FA7] border-[#0D4FA7]"
                           } inline-block`}
                         >
-                          {item?.status || ""}
-                        </span>
+                          {item?.status== "0"? "To Do" : item?.status=="1" ?"In Progress" : item?.status=="2" ? "Under Review" : item?.status=="3" ?"Completed":"" || ""}
+                        </span> */}
                       </td>
                       <td
                         className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
                         onClick={() => handleTaskClick(item?.id)}
                       >
-                        {item?.date || ""}
+                        {item?.date ? formatDate(item?.date):"" || ""}
                       </td>
                       <td
                         className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
@@ -386,22 +396,25 @@ const SEO = ({ itemId }) => {
                       >
                         {item?.page_url || ""}
                       </td>
-                     
-                     
+
                       <td
                         className={` text-[12px] sm:text-[14px] `}
                         onClick={() => handleTaskClick(item?.id)}
                       >
                         <span
                           className={`py-1 px-2 sm:px-4   text-[12px] sm:text-[14px]  border rounded-md ml-4  ${
-                            item?.priority === "High"
+                            item?.priority == "0"
                               ? "text-[#4976F4] border-[#4976F4]"
-                              : item?.priority === "Low"
+                              : item?.priority == "1"
                               ? "text-red-400 border-red-400"
                               : "text-[#954BAF] border-[#954BAF]"
                           } inline-block`}
                         >
-                          {item?.priority}
+                          {item?.priority === "0"
+                            ? "High"
+                            : item?.priority === "1"
+                            ? "Medium"
+                            : "Low"}
                         </span>
                       </td>
                     </tr>
@@ -422,9 +435,7 @@ const SEO = ({ itemId }) => {
         </>
       )}
 
-      {selectedView == "Kanban" && (
-        <KanBanView2 groupedUsers={seoListData} />
-      )}
+      {selectedView == "Kanban" && <KanBanView2 groupedUsers={seoListData} />}
 
       <DrawerSEO
         isOpen={isDrawerOpen1}

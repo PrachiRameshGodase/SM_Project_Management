@@ -1,23 +1,11 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Check, CircleX, X } from "lucide-react";
 import { OtherIcons } from "@/assests/icons";
-import AttachmentPreview from "../Attachments/AttachmentPreview";
-import DropdownStatus01 from "../Dropdown/DropdownStatus01";
-import CommentBox from "../CommentBox/CommentBox";
-import { statusProject } from "../Helper/Helper";
-import {
-    fetchProjectTaskDetails,
-    updateProjectStatus,
-    updateProjectTaskStatus,
-    updateStatus,
-    updateTaskStatus,
-} from "@/app/store/projectSlice";
+import { motion } from "framer-motion";
+import { CircleX } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
-import { useDispatch, useSelector } from "react-redux";
-import useUserData from "../Helper/useUserData";
+import { useEffect, useRef } from "react";
+import AttachmentPreview from "../Attachments/AttachmentPreview";
+import { formatDate } from "../Helper/Helper";
 
 const DrawerCampaignG = ({
     isOpen,
@@ -27,58 +15,27 @@ const DrawerCampaignG = ({
     setSelectedStatus,
 }) => {
     const router = useRouter();
-    const dispatch = useDispatch();
-    const userData = useUserData()
-    const documents = details?.attachments ? JSON.parse(details?.media_upload) : []
-    const [isActive, setIsActive] = useState(details?.project_status || "");
-    const [isActive2, setIsActive2] = useState(details?.status || "");
+    const drawerRef = useRef(null)
+    const documents = details?.media_upload ? JSON.parse(details?.media_upload) : []
 
     useEffect(() => {
-        if (details?.project_status !== undefined) {
-            setIsActive(details?.project_status);
+        const handleClickOutside = (event) => {
+            if (drawerRef.current && !drawerRef.current.contains(event.target)) {
+                setIsDrawerOpen(false); // Close drawer if clicked outside
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
         }
-    }, [details]);
-    useEffect(() => {
-        if (details?.status !== undefined) {
-            setIsActive2(details?.status);
-        }
-    }, [details]);
 
-    const handleStatusChange = async (value) => {
-        const result = await Swal.fire({
-            text: `Do you want to update the status of this Project?`,
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
-        });
-
-        if (result.isConfirmed && itemId) {
-            setSelectedStatus(value);
-
-            // Dispatch updateUserStatus with the new status
-            dispatch(updateProjectStatus({ id: itemId, status: value, router }));
-        }
-    };
-
-    const handleToggleStatus = async (event) => {
-        const newStatus = !isActive ? 1 : 0; // Toggle logic: Active (0) → Inactive (1), Inactive (1) → Active (0)
-
-        const result = await Swal.fire({
-            text: `Do you want to ${newStatus === 1 ? "Active" : "Inactive"
-                } this Project?`,
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
-        });
-
-        if (result.isConfirmed && itemId) {
-            setIsActive(!isActive); // Update local state immediately
-
-            // Dispatch updateUserStatus with the new status
-            dispatch(updateStatus({ id: itemId, project_status: newStatus, router }));
-        }
-    };
-
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen]);
+    const handleEdit = (id) => {
+        router.push(`/project/add-campaigns?id=${id}`)
+    }
     if (!isOpen) return null;
     return (
         <motion.div
@@ -98,36 +55,37 @@ const DrawerCampaignG = ({
                 <div className="flex justify-between">
                     <div className="w-full h-[69px] flex items-center justify-between ">
                         <div className="text-xl text-gray-700 ">
-                            <p className="font-bold">{details?.campaign_name || ""}</p>
+                        <p className="font-bold">
+                            
+                            <TruncatedTooltipText text={details?.campaign_name|| ""} maxLength={20} onClick={() => {}} section="project"/>
+                            
+                            </p>
                             <p className="text-xs text-gray-500">
                                 {details?.campaign_type || ""}
                             </p>
                         </div>
-                        <span
-                            className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
-        ${details?.status === "To Do"
-                                    ? "text-[#6C757D] border-[#6C757D]"
-                                    : details?.status === "In progress"
-                                        ? "text-[#CA9700] border-[#CA9700]"
-                                        : details?.status === "Completed"
-                                            ? "text-[#008053] border-[#008053]"
-                                            : "text-[#0D4FA7] border-[#0D4FA7]"
-                                }`}
-                        >
-                            {details?.status}
-                        </span>
+                        <div className="flex flex-row">
+                            <span
+                                className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
+                                 ${details?.status === "To Do"
+                                        ? "text-[#6C757D] border-[#6C757D]"
+                                        : details?.status === "In progress"
+                                            ? "text-[#CA9700] border-[#CA9700]"
+                                            : details?.status === "Completed"
+                                                ? "text-[#008053] border-[#008053]"
+                                                : "text-[#0D4FA7] border-[#0D4FA7]"
+                                    }`}
+                            >
+                                {details?.status}
+                            </span>
+                            <span onClick={() => handleEdit(details?.id)} className="ml-2 hover:cursor-pointer bg-white border border-gray-400 rounded px-2 py-0.5 hover:bg-gray-100" title="edit campaign">
+                                {OtherIcons?.edit_svg}
+                            </span>
+                        </div>
                     </div>
 
                 </div>
-                <div className="flex justify-end">
-                    <div className="flex items-center mr-2">
-                        {/* <div>
-                        <button className="w-[100px] h-[35px] rounded-[4px] py-[4px] bg-black text-white text-[16px] mb-2 p-4 mt-4">
-                            Edit
-                        </button>
-                    </div> */}
-                    </div>
-                </div>
+               
                 {/* Project Details Section */}
                 <div className="mb-4 mt-4 ml-[5px]">
                     <p className="text-xl leading-6">Campaign Details</p>
@@ -143,11 +101,20 @@ const DrawerCampaignG = ({
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
+                                Ad Type
+                            </span>
+                            <h4>:</h4>
+                            <span className="text-gray-700 w-[200px] text-[14px]">
+                                {details?.ad_type || ""}
+                            </span>
+                        </li>
+                        <li className="flex mb-2 gap-4">
+                            <span className="text-gray-400 w-[120px] text-[14px]">
                                 Start Date
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.start_date}
+                                {details?.start_date ? formatDate(details?.start_date) : "" || ""}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
@@ -156,13 +123,40 @@ const DrawerCampaignG = ({
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.end_date}
+                                {details?.end_date ? formatDate(details?.end_date) : "" || ""}
+                            </span>
+                        </li>
+
+                        <li className="flex mb-2 gap-4">
+                            <span className="text-gray-400 w-[120px] text-[14px]">
+                                Platform
+                            </span>
+                            <h4>:</h4>
+                            <span className="text-gray-700 w-[200px] text-[14px]">
+                                {details?.platforms}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">Team</span>
                             <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">{details?.team_members?.map((item) => item?.first_name + " " + item?.last_name).join(", ") || ""}</span>
+                            <span className="text-gray-700 w-[200px] text-[14px]">{details?.team_names?.map((item) => item?.name).join(", ") || ""}</span>
+                        </li>
+
+                        <li className="flex mb-2 gap-4">
+                            <span className="text-gray-400 w-[120px] text-[14px]">
+                                Campaign Goal
+                            </span>
+                            <h4>:</h4>
+                            <span className="text-gray-700 w-[200px] text-[14px]">
+                                {details?.campaign_goal || ""}
+                            </span>
+                        </li>
+
+
+                        <li className="flex mb-2 gap-4">
+                            <span className="text-gray-400 w-[120px] text-[14px]">Team</span>
+                            <h4>:</h4>
+                            <span className="text-gray-700 w-[200px] text-[14px]">{details?.team_names?.map((item) => item?.name).join(", ") || ""}</span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
@@ -176,50 +170,34 @@ const DrawerCampaignG = ({
 
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                                Attempted
+                                Branches
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.attempted_users || ""}
+                                {details?.branches || ""}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                                Sent
+                                URL
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.sent_users || ""}
-                            </span>
-                        </li>
-                        <li className="flex mb-2 gap-4">
-                            <span className="text-gray-400 w-[120px] text-[14px]">
-                                Sent
-                            </span>
-                            <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.sent_users || ""}
-                            </span>
-                        </li>
-                        <li className="flex mb-2 gap-4">
-                            <span className="text-gray-400 w-[120px] text-[14px]">
-                                Read
-                            </span>
-                            <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.read_users || ""}
+                                {details?.destination_url ? (
+                                    <a
+                                        href={details.destination_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 underline hover:text-blue-800"
+                                    >
+                                        {details.destination_url}
+                                    </a>
+                                ) : (
+                                    ""
+                                )}
                             </span>
                         </li>
 
-                        <li className="flex mb-2 gap-4">
-                            <span className="text-gray-400 w-[120px] text-[14px]">
-                                Replied
-                            </span>
-                            <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.replied_users || ""}
-                            </span>
-                        </li>
 
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">

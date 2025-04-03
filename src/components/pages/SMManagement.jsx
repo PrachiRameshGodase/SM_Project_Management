@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import KanBanView from "../common/KanBanView/KanBanView";
 import Dropdown01 from "../common/Dropdown/Dropdown01";
-import { formatDate, getPlatformIcons, postStatus, statusProject, taskView } from "../common/Helper/Helper";
+import {
+  formatDate,
+  getPlatformIcons,
+  postApprovalStatus,
+  postStatus,
+  statusProject,
+  taskView,
+} from "../common/Helper/Helper";
 import { OtherIcons } from "@/assests/icons";
 import { Drawer001 } from "../common/Drawer/Drawer01";
 import {
@@ -17,9 +24,17 @@ import Pagenation from "../common/Pagenation/Pagenation";
 import TableSkeleton from "../common/TableSkeleton/TableSkeleton";
 import TruncatedTooltipText from "../common/TruncatedTooltipText/TruncatedTooltipText";
 import DrawerSM from "../common/Drawer/DrawerSM";
-import { fetchPost, fetchPostDetails, updatePostApprovalStatus, updatePostStatus } from "@/app/store/smmangementSlice";
+import {
+  fetchPost,
+  fetchPostDetails,
+  updatePostApprovalStatus,
+  updatePostStatus,
+} from "@/app/store/smmangementSlice";
 import SortBy from "../common/Sort/SortBy";
-import DropdownStatus01, { DropdownStatus001 } from "../common/Dropdown/DropdownStatus01";
+import DropdownStatus01, {
+  DropdownStatus0001,
+  DropdownStatus001,
+} from "../common/Dropdown/DropdownStatus01";
 
 const SMManagement = ({ itemId }) => {
   const router = useRouter();
@@ -37,9 +52,7 @@ const SMManagement = ({ itemId }) => {
   const [isDrawerOpen1, setIsDrawerOpen1] = useState(false);
   const [itemId2, setItemId2] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [dataLoading, setDataLoading] = useState(true)
-  
-
+  const [dataLoading, setDataLoading] = useState(true);
 
   const handleTaskClick = (id) => {
     setItemId2(id);
@@ -107,15 +120,31 @@ const SMManagement = ({ itemId }) => {
   };
 
   const handleStatusChange = async (value, id) => {
-    dispatch(updatePostStatus({ id: id,project_id:Number(itemId), status: value, dispatch, setDataLoading }))
+    dispatch(
+      updatePostStatus({
+        id: id,
+        project_id: Number(itemId),
+        status: value,
+        dispatch,
+        setDataLoading,
+      })
+    );
   };
 
   const handleApprovalStatusChange = async (value, id) => {
-    dispatch(updatePostApprovalStatus({ id: id,project_id:Number(itemId), approval_status: value, dispatch, setDataLoading }))
+    dispatch(
+      updatePostApprovalStatus({
+        id: id,
+        project_id: Number(itemId),
+        approval_status: value,
+        dispatch,
+        setDataLoading,
+      })
+    );
   };
   return (
     <div>
-        {/* {projectLoading?.loading && !dataLoading && <ScreenFreezeLoader />} */}
+      {/* {projectLoading?.loading && !dataLoading && <ScreenFreezeLoader />} */}
       <div className="w-full h-[44px] mt-6  flex justify-between items-center px-2 sm:px-4  ">
         {/* Left Section (Heading + Count) */}
         <div className="flex">
@@ -155,7 +184,7 @@ const SMManagement = ({ itemId }) => {
             icon={OtherIcons.user_svg}
           />
           {/* <Dropdown01 options={projectSortConstant} selectedValue={selectedSort} onSelect={setSelectedSort} label="Sort By" icon={OtherIcons.sort_by_svg} /> */}
-          <SearchComponent onSearch={onSearch} section={searchTrigger} />
+          <SearchComponent onSearch={onSearch} placeholder="Search By Post Type, Platform..." section={searchTrigger} />
 
           <div className="w-[1px] h-[40px] bg-gray-400 opacity-40" />
           <Tooltip title="Add Task" arrow disableInteractive>
@@ -170,7 +199,7 @@ const SMManagement = ({ itemId }) => {
 
         {/* Mobile Filter Button */}
         <div className="flex  gap-2  min-[950px]:hidden ">
-          <SearchComponent onSearch={onSearch} section={searchTrigger} />
+          <SearchComponent onSearch={onSearch} placeholder="Search By Post Type, Platform..." section={searchTrigger} />
           <Tooltip title="Filter" arrow disableInteractive>
             <button
               className="min-[950px]:hidden w-[44px] h-[44px]  border border-gray-300 hover:ring-2 hover:ring-purple-200  hover:border-purple-500 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center text-2xl"
@@ -306,144 +335,147 @@ const SMManagement = ({ itemId }) => {
 
       {/* {selectedView == "List" && (
         <> */}
-          <div className="max-w-full  overflow-x-auto mt-6 ">
-            {(postLoading?.loading && dataLoading) ? (
-              <TableSkeleton rows={7} columns={5} />
-            ) : (
-              <table className="w-full border-spacing-y-1 min-w-[1000px] border-2 border-transparent  ">
-                <thead className=" ">
-                  <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
-                    <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-800">POST ID</span>
-                        <SortBy
-                          setSearchTrigger={setSearchTrigger}
-                          selectedSortBy={selectedSortBy}
-                          setSelectedSortBy={setSelectedSortBy}
-                          sortOrder={sortOrder}
-                          setSortOrder={setSortOrder}
-                          sortOptions="post_id"
-                          resetPageIfNeeded={resetPageIfNeeded}
-                        />
-                      </div>
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                      Scheduled Date
-                    </th>
-                    {/* <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
+      <div className="max-w-full  overflow-x-auto mt-6 ">
+        {postLoading?.loading && dataLoading ? (
+          <TableSkeleton rows={7} columns={5} />
+        ) : (
+          <table className="w-full border-spacing-y-1 min-w-[1000px] border-2 border-transparent  ">
+            <thead className=" ">
+              <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
+                <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-800">POST ID</span>
+                    <SortBy
+                      setSearchTrigger={setSearchTrigger}
+                      selectedSortBy={selectedSortBy}
+                      setSelectedSortBy={setSelectedSortBy}
+                      sortOrder={sortOrder}
+                      setSortOrder={setSortOrder}
+                      sortOptions="post_id"
+                      resetPageIfNeeded={resetPageIfNeeded}
+                    />
+                  </div>
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  Scheduled Date
+                </th>
+                {/* <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
                       Created By
                     </th> */}
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
-                      Platform
-                    </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
+                  Platform
+                </th>
 
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                      STATUS
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                      POST TYPE
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                      Team
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    Approval  Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {postListData?.map((item, index) => (
-                    <tr
-                      key={item?.id}
-                      className="cursor-pointer  hover:bg-gray-100   hover:shadow-tr-border   rounded-md  transition-all duration-200"
-                    >
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   rounded "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.post_id || ""}
-                      </td>
-                     
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.scheduled_date ? formatDate(item?.scheduled_date) :"" || ""}
-                      </td>
-                     
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px] flex flex-row  "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                       
-                        {getPlatformIcons(item?.platform)}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                      >
-                          {item?.status ? (
-                            <DropdownStatus001
-                              options={postStatus}
-                              selectedValue={item?.status}
-                              onSelect={(value) => handleStatusChange(value, item?.id)}
-                              label="Status"
-                              className="w-[140px]"
-                              setDataLoading={setDataLoading}
-                            />
-                          ) : (
-                            "" 
-                          )}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.post_type || ""}
-                      </td>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  STATUS
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  POST TYPE
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  Team
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  Approval Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {postListData?.map((item, index) => (
+                <tr
+                  key={item?.id}
+                  className="cursor-pointer  hover:bg-gray-100   hover:shadow-tr-border   rounded-md  transition-all duration-200"
+                >
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   rounded "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.post_id || ""}
+                  </td>
 
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]  "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        <TruncatedTooltipText
-                          text={item?.team_members?.map((item)=>item?.name).join(", ")}
-                          maxLength={25}
-                        />
-                      </td>
-                      <td
-                        className={` text-[12px] sm:text-[14px] `}
-                      >
-                       
-                       {item?.approval_status ? (
-                            <DropdownStatus01
-                              options={statusProject}
-                              selectedValue={item?.approval_status}
-                              onSelect={(value) => handleApprovalStatusChange(value, item?.id)}
-                              label="Status"
-                              className="w-[140px]"
-                              setDataLoading={setDataLoading}
-                            />
-                          ) : (
-                            ""
-                          )}
-                       
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          {/* Pagination */}
-          <Pagenation
-            itemList={totalCount}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            setSearchCall={setSearchTrigger}
-          />
-        {/* </>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.scheduled_date
+                      ? formatDate(item?.scheduled_date)
+                      : "" || ""}
+                  </td>
+
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px] flex flex-row  "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {getPlatformIcons(item?.platform).map((icon, index) =>
+                      icon ? <span key={index}>{icon}</span> : null
+                    )}
+                  </td>
+                  <td className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   ">
+                    {item?.status ? (
+                      <DropdownStatus001
+                        options={postStatus}
+                        selectedValue={item?.status}
+                        onSelect={(value) =>
+                          handleStatusChange(value, item?.id)
+                        }
+                        label="Status"
+                        className="w-[140px]"
+                        setDataLoading={setDataLoading}
+                      />
+                    ) : (
+                      ""
+                    )}
+                  </td>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.post_type || ""}
+                  </td>
+
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]  "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    <TruncatedTooltipText
+                      text={item?.team_members
+                        ?.map((item) => item?.name)
+                        .join(", ")}
+                      maxLength={25}
+                    />
+                  </td>
+                  <td className={` text-[12px] sm:text-[14px] `}>
+                    {item?.approval_status ? (
+                      <DropdownStatus0001
+                        options={postApprovalStatus}
+                        selectedValue={item?.approval_status}
+                        onSelect={(value) =>
+                          handleApprovalStatusChange(value, item?.id)
+                        }
+                        label="Status"
+                        className="w-[140px]"
+                        setDataLoading={setDataLoading}
+                      />
+                    ) : (
+                      ""
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {/* Pagination */}
+      <Pagenation
+        itemList={totalCount}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        itemsPerPage={itemsPerPage}
+        setItemsPerPage={setItemsPerPage}
+        setSearchCall={setSearchTrigger}
+      />
+      {/* </>
       )} */}
 
       {selectedView == "Kanban" && (

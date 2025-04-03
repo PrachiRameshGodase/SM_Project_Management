@@ -1,30 +1,29 @@
-import React, { useEffect, useState } from "react";
-import KanBanView from "../common/KanBanView/KanBanView";
+import {
+  fetchcollabration,
+  fetchcollabrationDetails,
+} from "@/app/store/collabrationSlice";
+import { OtherIcons } from "@/assests/icons";
+import { Tooltip } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import DrawerCollaboration from "../common/Drawer/DrawerCollaboration";
 import Dropdown01 from "../common/Dropdown/Dropdown01";
 import { statusProject, taskView } from "../common/Helper/Helper";
-import { OtherIcons } from "@/assests/icons";
-import { Drawer001 } from "../common/Drawer/Drawer01";
-import {
-  fetchProjectTaskDetails,
-  fetchProjectTasks,
-} from "@/app/store/projectSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
 import { useDebounceSearch } from "../common/Helper/HelperFunction";
-import SearchComponent from "../common/SearchComponent/SearchComponent";
-import { Tooltip } from "@mui/material";
 import Pagenation from "../common/Pagenation/Pagenation";
+import SearchComponent from "../common/SearchComponent/SearchComponent";
+import SortBy from "../common/Sort/SortBy";
 import TableSkeleton from "../common/TableSkeleton/TableSkeleton";
-import TruncatedTooltipText from "../common/TruncatedTooltipText/TruncatedTooltipText";
-import DrawerSM from "../common/Drawer/DrawerSM";
-import { fetchcollabration, fetchcollabrationDetails } from "@/app/store/collabrationSlice";
 
 const Collaborations = ({ itemId }) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
   const collabrationLoading = useSelector((state) => state.collabration);
-  const projectTaskListData = useSelector((state) => state.collabration?.list?.data);
+  const collabrationListData = useSelector(
+    (state) => state.collabration?.list?.data
+  );
   const totalCount = useSelector((state) => state?.collabration?.list?.total);
   const collabrationDetailsData = useSelector(
     (state) => state.collabration?.collabrationDetails?.data
@@ -127,7 +126,6 @@ const Collaborations = ({ itemId }) => {
 
         {/* Right Section (Filters & Search) */}
         <div className="hidden min-[950px]:flex gap-6 items-center">
-          
           <Dropdown01
             options={statusProject}
             selectedValue={selectedStatus}
@@ -285,121 +283,153 @@ const Collaborations = ({ itemId }) => {
         </div>
       </div>
 
-     
-          <div className="max-w-full  overflow-x-auto mt-6 ">
-            {collabrationLoading?.loading ? (
-              <TableSkeleton rows={7} columns={5} />
-            ) : (
-              <table className="w-full border-spacing-y-1 min-w-[1000px] border-2 border-transparent  ">
-                <thead className=" ">
-                  <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
-                    <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
-                      Collabration ID
-                      <span className="mt-1 pl-10 flex flex-col gap-1">
-                        {OtherIcons.arrow_up_svg}
-                        {OtherIcons.arrow_down_svg}
-                      </span>
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                      Name
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
-                    FOLLOWERS 
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
-                    CONTENT TYPE
-                    </th>
+      <div className="max-w-full  overflow-x-auto mt-6 ">
+        {collabrationLoading?.loading ? (
+          <TableSkeleton rows={7} columns={5} />
+        ) : (
+          <table className="w-full border-spacing-y-1 min-w-[1000px] border-2 border-transparent  ">
+            <thead className=" ">
+              <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
+                <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
+                  <div className="flex w-full justify-between items-center text-gray-700">
+                    <span className="text-gray-700">Collaboration Id</span>
+                    <SortBy
+                      setSearchTrigger={setSearchTrigger}
+                      selectedSortBy={selectedSortBy}
+                      setSelectedSortBy={setSelectedSortBy}
+                      sortOrder={sortOrder}
+                      setSortOrder={setSortOrder}
+                      sortOptions="collaboration_id"
+                      resetPageIfNeeded={resetPageIfNeeded}
+                    />
+                  </div>
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  Name
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
+                  FOLLOWERS
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px]  ">
+                  CONTENT TYPE
+                </th>
 
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    PAYMENT
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    PAYMENT STATUS
-                    </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    Platform
-                    </th>
-                    {/* <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
-                    POSTING DATE
-                    </th> */}
-                  </tr>
-                </thead>
-                <tbody>
-                  {projectTaskListData?.map((item, index) => (
-                    <tr
-                      key={item?.id}
-                      className="cursor-pointer  hover:bg-gray-100   hover:shadow-tr-border   rounded-md  transition-all duration-200"
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  Platform
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  PAYMENT
+                </th>
+
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  PAYMENT STATUS
+                </th>
+                <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
+                  Availability STATUS
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {collabrationListData?.map((item, index) => (
+                <tr
+                  key={item?.id}
+                  className="cursor-pointer  hover:bg-gray-100   hover:shadow-tr-border   rounded-md  transition-all duration-200"
+                >
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   rounded "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.collaboration_id || ""}
+                  </td>
+                  <td
+                    className={`py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[14px]  min-w-[150px] rounded `}
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.influencer_name || ""}
+                  </td>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.follower_count || ""}
+                  </td>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.content_type || ""}
+                  </td>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]  "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.platform}
+                  </td>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    {item?.payment || ""}
+                  </td>
+                  <td
+                    className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
+                    onClick={() => handleTaskClick(item?.id)}
+                  >
+                    <span
+                      className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
+                                                         ${
+                                                           item?.payment_status ===
+                                                           "Unpaid"
+                                                             ? "text-[#CA9700] border-[#CA9700]"
+                                                             : item?.payment_status ===
+                                                               "Paid"
+                                                             ? "text-[#008053] border-[#008053]"
+                                                             : "text-[#0D4FA7] border-[#0D4FA7]"
+                                                         }`}
                     >
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   rounded "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.collaboration_id || ""}
-                      </td>
-                      <td
-                        className={`py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[14px]  min-w-[150px] rounded `}
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                       {item?.influencer_name ||""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.follower_count || ""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.content_type || ""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.engagement_rate || ""}
-                      </td>
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]   "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.payment_status || ""}
-                      </td>
-                     
-                      <td
-                        className="py-2 sm:py-3 px-2 sm:px-4   text-[12px] sm:text-[15px]  "
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        {item?.platform}
-                      </td>
-                      {/* <td
-                        className={` text-[12px] sm:text-[14px] `}
-                        onClick={() => handleTaskClick(item?.id)}
-                      >
-                        
-                          {item?.priority}
-                       
-                      </td> */}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          {/* Pagination */}
-          <Pagenation
-            itemList={totalCount}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            setSearchCall={setSearchTrigger}
-          />
-       
+                      {item?.payment_status}
+                    </span>
+                  </td>
 
-     
-      <DrawerSM
+                  <Tooltip
+                    title={
+                      item?.availability_status == "Available"
+                        ? "Influencer Is Available"
+                        : "Influencer Is Available"
+                    }
+                    arrow
+                    disableInteractive
+                  >
+                    <td
+                      className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px] min-w-[100px] flex justify-center items-center"
+                      onClick={() => handleTaskClick(item?.id)}
+                    >
+                      <span
+                        className={`w-3 h-3 inline-block  rounded-full ${
+                          item?.availability_status == "Available"
+                            ? "bg-green-600"
+                            : "bg-red-600"
+                        }`}
+                      ></span>
+                    </td>
+                  </Tooltip>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {/* Pagination */}
+      <Pagenation
+        itemList={totalCount}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        itemsPerPage={itemsPerPage}
+        setItemsPerPage={setItemsPerPage}
+        setSearchCall={setSearchTrigger}
+      />
+
+      <DrawerCollaboration
         isOpen={isDrawerOpen1}
         setIsDrawerOpen={setIsDrawerOpen1}
         itemId2={itemId}

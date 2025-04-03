@@ -79,6 +79,10 @@ const DrawerSM = ({
     }
   };
 
+  const handleEdit = (id) => {
+    localStorage.setItem("itemId", itemId);
+    router.push(`/project/add-post?id=${id}`)
+}
   if (!isOpen) return null;
   return (
     <motion.div
@@ -103,63 +107,28 @@ const DrawerSM = ({
                 {details?.post_type || ""}
               </p>
             </div>
-            <span
-              className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
-        ${details?.approval_status === "To Do"
-                  ? "text-[#6C757D] border-[#6C757D]"
-                  : details?.approval_status === "In progress"
-                    ? "text-[#CA9700] border-[#CA9700]"
-                    : details?.approval_status === "Completed"
-                      ? "text-[#008053] border-[#008053]"
-                      : "text-[#0D4FA7] border-[#0D4FA7]"
-                }`}
-            >
-              {details?.approval_status}
-            </span>
-          </div>
-          {/* <div>
-                        <button className="w-[100px] h-[35px] rounded-[4px] py-[4px] bg-black text-white text-[16px] mb-2 p-4 mt-4">
-                            Edit
-                        </button>
-                    </div> */}
-        </div>
-        {/* <div className="flex justify-end">
-          <div className="flex items-center mr-2">
-            <label className="flex items-center cursor-pointer">
-              <span className="ml-2 text-[15px] mr-2">
-                {!isActive ? "Inactive" : "Active"}
+            <div className="flex flex-row">
+              <span
+                className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
+                                 ${details?.status === "Draft"
+                    ? "text-[#6C757D] border-[#6C757D]"
+                    : details?.status === "Scheducled"
+                      ? "text-[#CA9700] border-[#CA9700]"
+                      : details?.status === "Published"
+                        ? "text-[#008053] border-[#008053]"
+                        : "text-[#0D4FA7] border-[#0D4FA7]"
+                  }`}
+              >
+                {details?.status}
               </span>
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  defaultChecked={isActive}
-                  onChange={userData?.is_client === 0 ? handleToggleStatus : undefined}
-                />
-                <div
-                  className={`w-[70px] h-[40px] rounded-full shadow- transition duration-300 ease-in-out bg-[#ECE4FF]`}
-                >
-
-                </div>
-                <div
-                  className={`absolute w-[33px] h-[33px] rounded-full shadow-md top-[4px] left-[4px] transition-transform duration-300 ease-in-out ${isActive ? 'translate-x-7 bg-[#048339]' : 'bg-[#E23703]'
-                    }`}
-                >
-                  {isActive && (
-                    <span className="absolute inset-0 flex items-center justify-center text-white text-[10px]">
-                      <Check size={16} />
-                    </span>
-                  )}
-                  {!isActive && (
-                    <span className="absolute inset-0 flex items-center justify-center text-white text-[10px]">
-                      <X size={16} />
-                    </span>
-                  )}
-                </div>
-              </div>
-            </label>
+              <span onClick={() => handleEdit(details?.id)} className="ml-2 hover:cursor-pointer bg-white border border-gray-400 rounded px-2 py-0.5 hover:bg-gray-100" title="edit campaign">
+                {OtherIcons?.edit_svg}
+              </span>
+            </div>
           </div>
-        </div> */}
+         
+        </div>
+       
         {/* Project Details Section */}
         <div className="mb-4 mt-4 ml-[5px]">
           <p className="text-xl leading-6">Post Details</p>
@@ -198,8 +167,8 @@ const DrawerSM = ({
               </span>
               <h4>:</h4>
               <span className="text-gray-700 w-[200px] text-[14px]">
-                                        {details?.scheduled_date ? formatDate(details?.scheduled_date) :"" || ""}
-                
+                {details?.scheduled_date ? formatDate(details?.scheduled_date) : "" || ""}
+
               </span>
             </li>
             {/* <li className="flex mb-2 gap-4">

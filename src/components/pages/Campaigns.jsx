@@ -1,33 +1,27 @@
-import React, { useEffect, useState } from "react";
-import KanBanView from "../common/KanBanView/KanBanView";
-import Dropdown01 from "../common/Dropdown/Dropdown01";
-import { formatDate, statusProject, taskView } from "../common/Helper/Helper";
-import { OtherIcons } from "@/assests/icons";
-import { Drawer001 } from "../common/Drawer/Drawer01";
-import {
-  fetchProjectTaskDetails,
-  fetchProjectTasks,
-} from "@/app/store/projectSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
-import { useDebounceSearch } from "../common/Helper/HelperFunction";
-import SearchComponent from "../common/SearchComponent/SearchComponent";
-import { Tooltip } from "@mui/material";
-import Pagenation from "../common/Pagenation/Pagenation";
-import TableSkeleton from "../common/TableSkeleton/TableSkeleton";
-import TruncatedTooltipText from "../common/TruncatedTooltipText/TruncatedTooltipText";
-import DrawerSM from "../common/Drawer/DrawerSM";
 import {
   fetchCampaign,
   fetchCampaignDetails,
   updateCampaignStatus,
 } from "@/app/store/campaignSlice";
+import { OtherIcons } from "@/assests/icons";
+import { Tooltip } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import DrawerCampaign from "../common/Drawer/DrawerCampaign";
 import DrawerCampaignFI from "../common/Drawer/DrawerCampaignFI";
-import DropdownStatus01 from "../common/Dropdown/DropdownStatus01";
+import DrawerCampaignG from "../common/Drawer/DrawerCampaignG";
 import DrawerCampaignWP from "../common/Drawer/DrawerCampaignWp";
 import DrawerCampaignY from "../common/Drawer/DrawerCampaignY";
-import DrawerCampaignG from "../common/Drawer/DrawerCampaignG";
+import Dropdown01 from "../common/Dropdown/Dropdown01";
+import DropdownStatus01 from "../common/Dropdown/DropdownStatus01";
+import { formatDate, statusProject } from "../common/Helper/Helper";
+import { useDebounceSearch } from "../common/Helper/HelperFunction";
+import Pagenation from "../common/Pagenation/Pagenation";
+import SearchComponent from "../common/SearchComponent/SearchComponent";
+import SortBy from "../common/Sort/SortBy";
+import TableSkeleton from "../common/TableSkeleton/TableSkeleton";
+import TruncatedTooltipText from "../common/TruncatedTooltipText/TruncatedTooltipText";
 
 const Campaigns = ({ itemId }) => {
   const router = useRouter();
@@ -36,20 +30,18 @@ const Campaigns = ({ itemId }) => {
   const campaignListData = useSelector((state) => state.campaign?.list?.data);
   const campaignLoading = useSelector((state) => state.campaign);
   const totalCount = useSelector((state) => state?.campaign?.list?.total);
-  const campaignDetailData = useSelector(
-    (state) => state.campaign?.campaignDetails?.data
-  );
+  const campaignDetailData = useSelector((state) => state.campaign?.campaignDetails?.data);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedView, setSelectedView] = useState("List");
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [isDrawerOpen1, setIsDrawerOpen1] = useState(false);
   const [itemId2, setItemId2] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("");
+
   const [dataLoading, setDataLoading] = useState(true);
 
   const handleTaskClick = (item) => {
     setItemId2(item?.id);
+    setDataLoading(false)
     setIsDrawerOpen1(true);
     setSelectedPlatform(item?.platforms);
   };
@@ -86,14 +78,14 @@ const Campaigns = ({ itemId }) => {
   //sortby
 
   // // filter
-  // const [selectedStatus, setSelectedStatus] = useState('View');
+  const [selectedStatus, setSelectedStatus] = useState("");
   // // filter
 
   useEffect(() => {
     if (!itemId) return; // Ensure itemId is set before dispatching
 
     const sendData = {
-      project_id: itemId,
+      project_id: Number(itemId),
       limit: itemsPerPage,
       page: currentPage,
       ...(searchTermFromChild ? { search: searchTermFromChild } : {}),
@@ -125,7 +117,7 @@ const Campaigns = ({ itemId }) => {
       })
     );
   };
-console.log("selectedPlatform", selectedPlatform)
+
   let DrawerComponent;
   switch (selectedPlatform) {
     case "WhatsApp":
@@ -174,6 +166,17 @@ console.log("selectedPlatform", selectedPlatform)
       break;
     case "YouTube":
       DrawerComponent = (
+        <DrawerCampaignY
+          isOpen={isDrawerOpen1}
+          setIsDrawerOpen={setIsDrawerOpen1}
+          itemId2={itemId}
+          itemId={itemId2}
+          details={campaignDetailData}
+        />
+      );
+      break;
+    case null:
+      DrawerComponent = (
         <DrawerCampaign
           isOpen={isDrawerOpen1}
           setIsDrawerOpen={setIsDrawerOpen1}
@@ -183,17 +186,6 @@ console.log("selectedPlatform", selectedPlatform)
         />
       );
       break;
-      case null:
-        DrawerComponent = (
-          <DrawerCampaign
-            isOpen={isDrawerOpen1}
-            setIsDrawerOpen={setIsDrawerOpen1}
-            itemId2={itemId}
-            itemId={itemId2}
-            details={campaignDetailData}
-          />
-        );
-        break;
     default:
       DrawerComponent = null; // No drawer if platform doesn't match
   }
@@ -206,7 +198,7 @@ console.log("selectedPlatform", selectedPlatform)
           <p className="text-[20px] sm:text-[30px] leading-[32px] tracking-[-1.5px]">
             All Campaigns list
           </p>
-          <p className="font-bold p-2 rounded-full text-[10.16px] leading-[12.19px] text-[#400F6F] mt-3 ml-2 bg-[#f0e7fa] flex items-center justify-center w-[50px] h-[10px]">
+          <p className="font-bold p-2 rounded-full text-[10.16px] leading-[12.19px] text-[#400F6F] mt-3 ml-2 bg-[#f0e7fa] flex items-center justify-center w-[70px] h-[10px]">
             {totalCount} total
           </p>
           <p
@@ -224,13 +216,6 @@ console.log("selectedPlatform", selectedPlatform)
 
         {/* Right Section (Filters & Search) */}
         <div className="hidden min-[950px]:flex gap-6 items-center">
-          <Dropdown01
-            options={taskView}
-            selectedValue={selectedView}
-            onSelect={setSelectedView}
-            label="View"
-            icon={OtherIcons.view_svg}
-          />
           <Dropdown01
             options={statusProject}
             selectedValue={selectedStatus}
@@ -369,13 +354,6 @@ console.log("selectedPlatform", selectedPlatform)
           {/* Filter Options */}
           <div className="mt-16 flex flex-col gap-4 px-4">
             <Dropdown01
-              options={taskView}
-              selectedValue={selectedView}
-              onSelect={setSelectedView}
-              label="View"
-              icon={OtherIcons.view_svg}
-            />
-            <Dropdown01
               options={statusProject}
               selectedValue={selectedStatus}
               onSelect={setSelectedStatus}
@@ -396,11 +374,18 @@ console.log("selectedPlatform", selectedPlatform)
             <thead className=" ">
               <tr className="text-left m-1 text-sm uppercase text-gray-800 shadow-tr-border rounded-md  ">
                 <th className="py-2 sm:py-3 px-2 sm:px-4  text-[12px] sm:text-[15px]   flex ">
-                  Campaign ID
-                  <span className="mt-1 pl-10 flex flex-col gap-1">
-                    {OtherIcons.arrow_up_svg}
-                    {OtherIcons.arrow_down_svg}
-                  </span>
+                  <div className="flex w-full justify-between items-center text-gray-700">
+                    <span className="text-gray-700">Campaign Id</span>
+                    <SortBy
+                      setSearchTrigger={setSearchTrigger}
+                      selectedSortBy={selectedSortBy}
+                      setSelectedSortBy={setSelectedSortBy}
+                      sortOrder={sortOrder}
+                      setSortOrder={setSortOrder}
+                      sortOptions="campaign_id"
+                      resetPageIfNeeded={resetPageIfNeeded}
+                    />
+                  </div>
                 </th>
                 <th className="py-2 sm:py-3 px-2 sm:px-4 text-[13px] sm:text-[16px] ">
                   Campaign Name
@@ -484,7 +469,9 @@ console.log("selectedPlatform", selectedPlatform)
                     onClick={() => handleTaskClick(item)}
                   >
                     <TruncatedTooltipText
-                      text={item?.team_names?.join(", ")}
+                      text={item?.team_names
+                        ?.map((item) => item?.name)
+                        ?.join(", ")}
                       maxLength={25}
                     />
                   </td>

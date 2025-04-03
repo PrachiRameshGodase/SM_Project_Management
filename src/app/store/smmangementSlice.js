@@ -153,11 +153,19 @@ const postSlice = createSlice({
       })
       .addCase(updatePostStatus.fulfilled, (state, action) => {
         state.loading = false;
+        if (!Array.isArray(state.list)) {
+          console.error("state.list is not an array:", state.list);
+          return;
+        }
+        
         const updatedUser = action.payload;
        
-        state.list = state.list.map(user =>
-          user.id === updatedUser.id ? { ...user, status: updatedUser.status } : user
-        );
+        state.list = Array.isArray(state.list)
+        ? state.list.map(user =>
+            user.id === updatedUser.id ? { ...user, status: updatedUser.status } : user
+          )
+        : [];
+      
       })
       .addCase(updatePostStatus.rejected, (state, action) => {
         state.loading = false;
@@ -172,10 +180,18 @@ const postSlice = createSlice({
       .addCase(updatePostApprovalStatus.fulfilled, (state, action) => {
         state.loading = false;
         const updatedUser = action.payload;
-       
-        state.list = state.list.map(user =>
-          user.id === updatedUser.id ? { ...user, approval_status: updatedUser.approval_status } : user
-        );
+        if (!Array.isArray(state.list)) {
+          console.error("state.list is not an array:", state.list);
+          return;
+        }
+        
+        state.list = Array.isArray(state.list)
+        ? state.list.map(user =>
+            user.id === updatedUser.id ? { ...user, approval_status: updatedUser.approval_status } : user
+          )
+        : [];
+      
+      
       })
       .addCase(updatePostApprovalStatus.rejected, (state, action) => {
         state.loading = false;

@@ -4,14 +4,18 @@ import {
     updateStatus
 } from "@/app/store/projectSlice";
 import { motion } from "framer-motion";
-import { CircleX } from "lucide-react";
+import { Check, CircleX, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import Swal from "sweetalert2";
 import useUserData from "../Helper/useUserData";
+import TruncatedTooltipText from "../TruncatedTooltipText/TruncatedTooltipText";
+import { formatDate } from "../Helper/Helper";
+import { OtherIcons } from "@/assests/icons";
+import { updateUserStatus } from "@/app/store/userSlice";
 
-const DrawerSEO = ({
+const DrawerCollaboration = ({
     isOpen,
     setIsDrawerOpen,
     details,
@@ -19,58 +23,54 @@ const DrawerSEO = ({
     setSelectedStatus,
 }) => {
     const router = useRouter();
-    const dispatch = useDispatch();
-    const userData = useUserData()
-    const documents = details?.attachments ? JSON.parse(details?.media_upload) : []
-    const [isActive, setIsActive] = useState(details?.project_status || "");
-    const [isActive2, setIsActive2] = useState(details?.status || "");
-
+    const drawerRef = useRef(null)
+    const dispatch=useDispatch()
+    const documents = details?.media_upload ? JSON.parse(details?.media_upload) : []
+    const [isActive, setIsActive] = useState(details?.availability_status || "");
     useEffect(() => {
-        if (details?.project_status !== undefined) {
-            setIsActive(details?.project_status);
+        const handleClickOutside = (event) => {
+            if (drawerRef.current && !drawerRef.current.contains(event.target)) {
+                setIsDrawerOpen(false); // Close drawer if clicked outside
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
         }
-    }, [details]);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen]);
+
+    const handleEdit = (id) => {
+        router.push(`/project/add-collaborations?id=${id}`)
+    }
     useEffect(() => {
-        if (details?.status !== undefined) {
-            setIsActive2(details?.status);
+        if (details?.availability_status !== undefined) {
+          setIsActive(details.availability_status);
         }
-    }, [details]);
-
-    const handleStatusChange = async (value) => {
-        const result = await Swal.fire({
-            text: `Do you want to update the status of this Project?`,
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
-        });
-
-        if (result.isConfirmed && itemId) {
-            setSelectedStatus(value);
-
-            // Dispatch updateUserStatus with the new status
-            dispatch(updateProjectStatus({ id: itemId, status: value, router }));
-        }
-    };
+      }, [details]);
+    
 
     const handleToggleStatus = async (event) => {
-        const newStatus = !isActive ? 1 : 0; // Toggle logic: Active (0) → Inactive (1), Inactive (1) → Active (0)
-
+        const newStatus = isActive ? "Available" : "Unavailable"; // Toggle logic: Active (0) → Inactive (1), Inactive (1) → Active (0)
+    
         const result = await Swal.fire({
-            text: `Do you want to ${newStatus === 1 ? "Active" : "Inactive"
-                } this Project?`,
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
+          text: `Do you want to ${newStatus === "Unavailable" ? "Unavailable" : "Available"
+            } this Influncer?`,
+          showCancelButton: true,
+          confirmButtonText: "Yes",
+          cancelButtonText: "No",
         });
-
+    
         if (result.isConfirmed && itemId) {
-            setIsActive(!isActive); // Update local state immediately
-
-            // Dispatch updateUserStatus with the new status
-            dispatch(updateStatus({ id: itemId, project_status: newStatus, router }));
+          setIsActive(!isActive); // Update local state immediately
+    
+          // Dispatch updateUserStatus with the new status
+          dispatch(updateUserStatus({ id: itemId, availability_status: newStatus, router }));
         }
-    };
-
+      };
     if (!isOpen) return null;
     return (
         <motion.div
@@ -90,28 +90,54 @@ const DrawerSEO = ({
                 <div className="flex justify-between">
                     <div className="w-full h-[69px] flex items-center justify-between ">
                         <div className="text-xl text-gray-700 ">
-                            <p className="font-bold">{details?.influencer_name || ""}</p>
+                            <p className="font-bold">
+
+                                <TruncatedTooltipText text={details?.influencer_name || ""} maxLength={20} onClick={() => { }} section="project" />
+                            </p>
+
 
                         </div>
-                        <span
-                            className={`px-3 py-1 border rounded-md inline-block text-[12px] h-[25px]
-        ${details?.status === "To Do"
-                                    ? "text-[#6C757D] border-[#6C757D]"
-                                    : details?.status === "In progress"
-                                        ? "text-[#CA9700] border-[#CA9700]"
-                                        : details?.status === "Completed"
-                                            ? "text-[#008053] border-[#008053]"
-                                            : "text-[#0D4FA7] border-[#0D4FA7]"
-                                }`}
-                        >
-                            {details?.status}
-                        </span>
+
+                        <div className="flex flex-row">
+
+                            <span onClick={() => handleEdit(details?.id)} className="ml-2 hover:cursor-pointer bg-white border border-gray-400 rounded px-2 py-0.5 hover:bg-gray-100" title="edit campaign">
+                                {OtherIcons?.edit_svg}
+                            </span>
+                        </div>
                     </div>
-                    {/* <div>
-                        <button className="w-[100px] h-[35px] rounded-[4px] py-[4px] bg-black text-white text-[16px] mb-2 p-4 mt-4">
-                            Edit
-                        </button>
-                    </div> */}
+                    <div> <label className="flex items-center cursor-pointer mt-4 ml-2">
+                       
+
+                        <div className="relative">
+                            <input
+                                type="checkbox"
+                                className="sr-only"
+                                defaultChecked={isActive}
+                                onChange={handleToggleStatus}
+                            />
+
+                            <div
+                                className={`w-[60px] h-[32px] rounded-full shadow- transition duration-300 ease-in-out bg-[#ECE4FF]`}
+                            >
+
+                            </div>
+                            <div
+                                className={`absolute w-[26px] h-[24px] rounded-full shadow-md top-[4px] left-[4px] transition-transform duration-300 ease-in-out ${isActive == "Available" ? 'translate-x-7 bg-[#048339]' : 'bg-[#E23703]'
+                                    }`}
+                            >
+                                {isActive == "Available" && (
+                                    <span className="absolute inset-0 flex items-center justify-center text-white text-[10px]">
+                                        <Check size={16} />
+                                    </span>
+                                )}
+                                {isActive == "Unavailable" && (
+                                    <span className="absolute inset-0 flex items-center justify-center text-white text-[10px]">
+                                        <X size={16} />
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </label></div>
                 </div>
 
                 {/* Project Details Section */}
@@ -120,38 +146,21 @@ const DrawerSEO = ({
                     <ul className=" h-[22px] mt-[20px] ">
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                                SEO ID
+                                Collaboration ID
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.seo_id || ""}
+                                {details?.collbration_id || ""}
                             </span>
                         </li>
+
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Date
+                                Username
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.date}
-                            </span>
-                        </li>
-                        <li className="flex mb-2 gap-4">
-                            <span className="text-gray-400 w-[120px] text-[14px]">
-                            Email ID
-                            </span>
-                            <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.email || ""}
-                            </span>
-                        </li>
-                        <li className="flex mb-2 gap-4">
-                            <span className="text-gray-400 w-[120px] text-[14px]">
-                            Email ID
-                            </span>
-                            <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.email || ""}
+                                {details?.social_media_username || ""}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
@@ -160,67 +169,85 @@ const DrawerSEO = ({
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.search_volume || ""}
+                                {details?.follower_count || ""}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Engagement Rate
+                                Engagement Rate
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.traffic || ""}
+                                {details?.engagement_rate || ""}
+                            </span>
+                        </li>
+                        <li className="flex mb-2 gap-4">
+                            <span className="text-gray-400 w-[120px] text-[14px]">
+                                Payment
+                            </span>
+                            <h4>:</h4>
+                            <span className="text-gray-700 w-[200px] text-[14px]">
+                                {details?.payment || ""}
+                            </span>
+                        </li>
+                        <li className="flex mb-2 gap-4">
+                            <span className="text-gray-400 w-[120px] text-[14px]">
+                                Payment Status
+                            </span>
+                            <h4>:</h4>
+                            <span className="text-gray-700 w-[200px] text-[14px]">
+                                {details?.payment_status || ""}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">Content Type</span>
                             <h4>:</h4>
-                            <span className="text-gray-700 w-[200px] text-[14px]">{details?.pages_per_session}</span>
+                            <span className="text-gray-700 w-[200px] text-[14px]">{details?.content_type}</span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Content posting frequency
+                                Content posting frequency
                             </span>
                             <h4>:</h4>
                             <span className="text-gray-700 w-[200px] text-[14px]">
-                                {details?.conversion_rate || ""}
+                                {details?.content_posting_frequency || ""}
                             </span>
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Pricing Model
+                                Pricing Model
                             </span>
                             <h4>:</h4>
-                            {details?.session_duration}
+                            {details?.pricing_model}
 
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Collaboration  
+                                Collaboration Type
                             </span>
                             <h4>:</h4>
-                            {details?.search_volume}
+                            {details?.collaboration_type}
 
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Assigned Team Member
+                                Assigned Team Member
                             </span>
                             <h4>:</h4>
-                            {details?.bounce_rate}
+                            {/* {details?.assigned_team_member?.map((item) => item?.name)} */}
 
                         </li>
                         <li className="flex mb-2 gap-4">
                             <span className="text-gray-400 w-[120px] text-[14px]">
-                            Notes
+                                Notes
                             </span>
                             <h4>:</h4>
                             {details?.notes}
 
                         </li>
-                       
-                        
-                       
+
+
+
 
                     </ul>
                     .
@@ -235,4 +262,4 @@ const DrawerSEO = ({
     );
 };
 
-export default DrawerSEO;
+export default DrawerCollaboration;

@@ -7,7 +7,7 @@ import FileUpload from '@/components/common/Attachments/FileUpload'
 import CustomDatePicker from '@/components/common/DatePicker/CustomDatePicker'
 import { Dropdown001 } from '@/components/common/Dropdown/Dropdown01'
 import { Dropdown002, Dropdown02 } from '@/components/common/Dropdown/Dropdown02'
-import { collabrationType, contentPostingFrq, contentType, departmentOptions, postPlatform, pricingModel, projectPriority, taskType, taskVisibility } from '@/components/common/Helper/Helper'
+import { collabrationType, contentPostingFrq, contentType, departmentOptions, paymentStatus, postPlatform, pricingModel, projectPriority, taskType, taskVisibility } from '@/components/common/Helper/Helper'
 import LayOut from '@/components/LayOut'
 import { CircleX } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -20,7 +20,7 @@ const AddCollaborations = () => {
     const dispatch = useDispatch();
     const usersList = useSelector((state) => state.user?.employeeList?.data);
     const addCollabrationLoading = useSelector((state) => state.collabration);
-
+    const collabrationDetailData = useSelector((state) => state.collabration?.collabrationDetails?.data);
     const [itemId2, setStoredValue] = useState(null);
 
     useEffect(() => {
@@ -42,7 +42,7 @@ const AddCollaborations = () => {
             setIsEditMode(params.get("edit") === "true"); // Convert string to boolean
         }
     }, []);
-    const taskDetailsData = useSelector((state) => state.project?.projectTaskDetails?.data);
+    
     useEffect(() => {
         if (itemId) {
             dispatch(fetchProjectTaskDetails(itemId));
@@ -67,14 +67,16 @@ const AddCollaborations = () => {
         engagement_rate: "",
         content_type: "",
         content_posting_frequency: "",
-        pricing_model:"",
-        collaboration_type:"",
-        availability_status:"",
-        assigned_team_member:"",
-        notes:"",
-        payment_status:"",
+        pricing_model: "",
+        collaboration_type: "",
+        availability_status: "",
+        assigned_team_member: "",
+        notes: "",
+        payment_status: "",
+        payment: null,
 
-       
+
+
     })
     console.log("formData", formData)
     const [errors, setErrors] = useState({
@@ -122,10 +124,10 @@ const AddCollaborations = () => {
             return;
         } else {
             try {
-                const sendData={
+                const sendData = {
                     ...formData,
-                    profile_picture:formData?.profile_picture? JSON.stringify(formData?.profile_picture):"",
-                    assigned_team_member:formData?.assigned_team_member? JSON.stringify(formData?.assigned_team_member):"",
+                    profile_picture: formData?.profile_picture ? JSON.stringify(formData?.profile_picture) : "",
+                    assigned_team_member: formData?.assigned_team_member ? JSON.stringify(formData?.assigned_team_member) : "",
                 }
                 dispatch(addcollabration({ projectData: sendData, router, itemId, itemId2 }));
             } catch (error) {
@@ -140,23 +142,28 @@ const AddCollaborations = () => {
     }
 
     useEffect(() => {
-        if (taskDetailsData && itemId) {
+        if (collabrationDetailData && itemId) {
             setFormData({
-                id: taskDetailsData?.id,
-                project_id: taskDetailsData?.project_id,
-                task_title: taskDetailsData?.task_title,
-                task_type: taskDetailsData?.task_type,
-                due_date: taskDetailsData?.due_date,
-                priority: taskDetailsData?.priority,
-                department: taskDetailsData?.department,
-                link: taskDetailsData?.link,
-                visibility: taskDetailsData?.visibility,
-                description: taskDetailsData?.description,
-                attachment: taskDetailsData?.attachments ? JSON.parse(taskDetailsData?.attachments) : [],
-                team: taskDetailsData?.team?.map((item) => item?.id)
+                id: collabrationDetailData?.id,
+                project_id: collabrationDetailData?.project_id,
+                influencer_name: collabrationDetailData?.influencer_name,
+                platform: collabrationDetailData?.platform,
+                social_media_username: collabrationDetailData?.social_media_username,
+                follower_count: collabrationDetailData?.follower_count,
+                engagement_rate: collabrationDetailData?.engagement_rate,
+                content_type: collabrationDetailData?.content_type,
+                content_posting_frequency: collabrationDetailData?.content_posting_frequency,
+                pricing_model: collabrationDetailData?.pricing_model,
+                collaboration_type: collabrationDetailData?.collaboration_type,
+                availability_status: collabrationDetailData?.availability_status,
+                payment: collabrationDetailData?.payment,
+                notes: collabrationDetailData?.notes,
+                payment_status: collabrationDetailData?.payment_status,
+                profile_picture: collabrationDetailData?.profile_picture ? JSON.parse(collabrationDetailData?.profile_picture) : [],
+                assigned_team_member: collabrationDetailData?.team?.map((item) => item?.id)
             });
         }
-    }, [taskDetailsData, itemId]);
+    }, [collabrationDetailData, itemId]);
 
     return (
         <LayOut>
@@ -222,6 +229,7 @@ const AddCollaborations = () => {
                             <label className="block text-[20px]">Engagement Rate</label>
                             <input className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-gray-400 rounded-lg p-2 text-m ml-[78px] placeholder:text-gray-400" type='text' placeholder='Enter Engagement Rate' value={formData?.engagement_rate} name='engagement_rate' onChange={handleChange} />
                         </div>
+
                         <div className="flex justify-between">
                             <label className="block text-[20px]">Content Type</label>
                             <Dropdown001
@@ -258,7 +266,21 @@ const AddCollaborations = () => {
                                 label="Select Collabration Type"
                             />
                         </div>
-                       
+                        <div className="flex justify-between">
+                            <label className="block text-[20px]">Payment </label>
+                            <input className="w-[310px] sm:w-[350px] md:w-[400px] h-10 border border-gray-400 rounded-lg p-2 text-m ml-[78px] placeholder:text-gray-400" type='number' placeholder='Enter Payment' value={formData?.payment} name='payment' onChange={handleChange} />
+                        </div>
+
+                        <div className="flex justify-between">
+                            <label className="block text-[20px]">Payment Status</label>
+                            <Dropdown001
+                                options={paymentStatus}
+                                selectedValue={formData?.payment_status}
+                                onSelect={(value) => handleDropdownChange("payment_status", value)}
+                                label="Select Payment Status"
+                            />
+                        </div>
+
                         <div className="flex justify-between">
                             <label className="block text-[20px]">Assigned Team Member</label>
                             <Dropdown002

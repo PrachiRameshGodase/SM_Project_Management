@@ -76,7 +76,7 @@ const AddSEO = () => {
         bounce_rate: "",
         click_through_rate: "",
         competitor_analysis_notes: "",
-        priority: ""
+        priority: 0
 
     })
     console.log("formData", formData)

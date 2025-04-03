@@ -30,7 +30,8 @@ export const issueFixed=["Yes", "No"]
 // export const distributionMethod=["By Hand", "On Wall", "Newspaper"];
 export const Skills =["React", "JavaScript", "HTML", "CSS", "Tailwind CSS", "Bootstarp","Node.js", "Express.js", "SQL", "MongoDB", "Git", "Git-Hub", "Firebase", "Axios"];
 export const postStatus=["Draft", "Scheduled", "Published"]
-
+export const postApprovalStatus=["Under Review", "Approved", "Rejected"]
+export const paymentStatus=["Unpaid", "Paid"]
 export const statusOptions = [
   { label: "All", value:2 },
   
